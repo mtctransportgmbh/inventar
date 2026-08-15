@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inventar MTC Transport</title>
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --bg:#f5f6f8; --bg2:#ffffff; --bg3:#f0f2f5; --border:#e1e5ea;
+  --text:#1a2229; --muted:#667180; --muted2:#98a2ad;
+  --accent:#d97706; --accent-dim:#d9770617;
+  --ruhstorf:#059669; --ruhstorf-dim:#05966917;
+  --eiselfing:#7c3aed; --eiselfing-dim:#7c3aed17;
+  --danger:#dc2626; --danger-dim:#dc262617;
+  --info:#2563eb; --info-dim:#2563eb17;
+  --depot:#64748b; --depot-dim:#64748b17;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh; -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-dim);}
+input,select,button{font-family:inherit; font-size:14px;}
+button{cursor:pointer;}
+
+/* LOGIN */
+#login-screen{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px; padding:20px;
+}
+.login-box{
+  background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:36px 32px;
+  width:100%; max-width:340px; text-align:center;
+}
+.login-box .logo{font-size:38px; margin-bottom:6px;}
+.login-box h1{font-size:19px; font-weight:700; margin-bottom:4px;}
+.login-box p{color:var(--muted); font-size:13px; margin-bottom:22px;}
+#pin-input{
+  width:100%; padding:14px; text-align:center; letter-spacing:8px; font-size:22px;
+  background:var(--bg3); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:14px;
+}
+#pin-input:focus{outline:none; border-color:var(--accent);}
+.btn{
+  padding:11px 18px; border-radius:10px; border:1px solid var(--border); background:var(--bg3); color:var(--text);
+  font-weight:600; transition:all .15s;
+}
+.btn:hover{border-color:var(--muted2);}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:#1a1206;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-block{width:100%;}
+.btn-danger{background:var(--danger-dim); border-color:var(--danger); color:var(--danger);}
+.btn-ghost{background:transparent; border-color:transparent; color:var(--muted);}
+.btn-ghost:hover{color:var(--text); background:var(--bg3);}
+.login-err{color:var(--danger); font-size:13px; min-height:18px; margin-top:8px;}
+.login-switch{margin-top:16px; font-size:12.5px; color:var(--muted);}
+.login-switch a{color:var(--accent); cursor:pointer; text-decoration:none; font-weight:600;}
+.login-switch a:hover{text-decoration:underline;}
+.login-content .form-group{text-align:left;}
+.role-badge{
+  display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 10px;
+  border-radius:20px; background:var(--bg3); color:var(--muted); white-space:nowrap;
+}
+.role-badge.is-admin{background:var(--accent-dim); color:var(--accent);}
+
+/* APP SHELL */
+#app{display:none; min-height:100vh; flex-direction:column;}
+header{
+  position:sticky; top:0; z-index:50; background:rgba(245,246,248,.92); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.header-top{display:flex; align-items:center; justify-content:space-between; padding:14px 20px; gap:16px;}
+.brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; white-space:nowrap;}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+.search-wrap{flex:1; max-width:420px; position:relative;}
+#global-search{
+  width:100%; padding:9px 14px 9px 34px; background:var(--bg3); border:1px solid var(--border); border-radius:9px; color:var(--text);
+}
+#global-search:focus{outline:none; border-color:var(--accent);}
+.search-icon{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted2); font-size:14px; pointer-events:none;}
+.search-kbd{position:absolute; right:9px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--muted2); border:1px solid var(--border); padding:1px 5px; border-radius:4px;}
+.header-actions{display:flex; align-items:center; gap:8px;}
+.tabs{display:flex; gap:2px; padding:0 20px; overflow-x:auto;}
+.tab{
+  padding:11px 16px; font-size:13.5px; font-weight:600; color:var(--muted); white-space:nowrap;
+  border-bottom:2px solid transparent; cursor:pointer; display:flex; align-items:center; gap:6px;
+}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent); border-bottom-color:var(--accent);}
+.tab .count{background:var(--bg3); padding:1px 7px; border-radius:20px; font-size:11px; color:var(--muted);}
+.tab.active .count{background:var(--accent-dim); color:var(--accent);}
+
+main{flex:1; padding:20px; max-width:1180px; width:100%; margin:0 auto;}
+.page{display:none;}
+.page.active{display:block;}
+
+.section-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+.section-head h2{font-size:17px; font-weight:700;}
+.section-head .sub{color:var(--muted); font-size:12.5px; margin-top:2px;}
+.head-actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+.filter-bar{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+.filter-chip{
+  padding:6px 13px; border-radius:20px; border:1px solid var(--border); background:var(--bg2); color:var(--muted);
+  font-size:12.5px; font-weight:600;
+}
+.filter-chip.active{background:var(--accent-dim); border-color:var(--accent); color:var(--accent);}
+
+.group-title{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--muted);
+  margin:22px 0 10px; display:flex; align-items:center; gap:8px;
+}
+.group-title .dot{width:6px;height:6px;border-radius:50%;}
+.group-title .n{color:var(--muted2); font-weight:600;}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px;}
+
+.card{
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:14px;
+  cursor:pointer; transition:border-color .15s; position:relative;
+}
+.card:hover{border-color:var(--muted2);}
+.card .top-row{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;}
+.card .serial{font-family:'SF Mono',Consolas,monospace; font-size:11.5px; color:var(--muted); word-break:break-all;}
+.card .main-label{font-size:15px; font-weight:700; margin-bottom:3px;}
+.card .sub-label{font-size:12.5px; color:var(--muted);}
+.badge{
+  display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700;
+  white-space:nowrap;
+}
+.badge-tura{background:var(--info-dim); color:var(--info);}
+.badge-depot{background:var(--depot-dim); color:var(--depot);}
+.badge-repair{background:var(--danger-dim); color:var(--danger);}
+.badge-none{background:var(--bg3); color:var(--muted2);}
+.badge-ruhstorf{background:var(--ruhstorf-dim); color:var(--ruhstorf);}
+.badge-eiselfing{background:var(--eiselfing-dim); color:var(--eiselfing);}
+
+.driver-card{
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; transition:border-color .15s;
+}
+.driver-card:hover{border-color:var(--muted2);}
+.driver-card .name{font-weight:700; font-size:14.5px; margin-bottom:6px;}
+.driver-card .tura-num{font-size:12px; color:var(--muted); margin-bottom:10px;}
+.equip-row{display:flex; gap:6px; flex-wrap:wrap;}
+.equip-dot{
+  display:flex; align-items:center; gap:4px; font-size:11px; padding:3px 8px; border-radius:7px; background:var(--bg3); color:var(--muted);
+}
+.equip-dot.ok{color:var(--text);}
+.equip-dot.missing{color:var(--muted2); opacity:.6;}
+
+.empty-state{
+  text-align:center; padding:60px 20px; color:var(--muted);
+}
+.empty-state .icon{font-size:34px; margin-bottom:10px; opacity:.6;}
+.empty-state .msg{font-size:14px; margin-bottom:4px; color:var(--text); font-weight:600;}
+.empty-state .hint{font-size:12.5px;}
+
+/* MODAL */
+.modal-overlay{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center; padding:16px;
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--bg2); border:1px solid var(--border); border-radius:16px; width:100%; max-width:440px; max-height:88vh; overflow-y:auto;
+  padding:22px;
+}
+.modal h3{font-size:16px; font-weight:700; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;}
+.modal h3 .x{color:var(--muted); font-weight:400; font-size:20px; cursor:pointer; line-height:1;}
+.form-group{margin-bottom:13px;}
+.form-group label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px; font-weight:600;}
+.form-group input, .form-group select, .form-group textarea{
+  width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; color:var(--text);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus{outline:none; border-color:var(--accent);}
+.quick-status{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+.quick-status button{
+  padding:5px 11px; border-radius:7px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); font-size:11.5px; font-weight:600;
+}
+.quick-status button:hover{border-color:var(--accent); color:var(--accent);}
+.modal-actions{display:flex; gap:8px; margin-top:18px;}
+.modal-actions .btn{flex:1;}
+.linked-equip{margin-top:4px; padding-top:14px; border-top:1px solid var(--border);}
+.linked-equip .li{display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:13px; border-bottom:1px solid var(--border);}
+.linked-equip .li:last-child{border:none;}
+.linked-equip .li .lbl{color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;}
+
+/* STATS */
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:24px;}
+.stat-card{background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px;}
+.stat-card .num{font-size:26px; font-weight:800;}
+.stat-card .lbl{font-size:12px; color:var(--muted); margin-top:2px;}
+.stat-card.warn .num{color:var(--danger);}
+
+/* TOAST */
+#toast{
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg3); border:1px solid var(--border);
+  padding:11px 20px; border-radius:10px; font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:all .25s; z-index:300;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* IMPORT BAR */
+#import-bar{
+  display:none; background:var(--accent-dim); border:1px solid var(--accent); border-radius:12px; padding:12px 16px; margin-bottom:18px;
+  display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+}
+#import-bar.show{display:flex;}
+#import-bar .txt{font-size:13px; color:var(--text);}
+#import-bar .txt b{color:var(--accent);}
+
+.spin{display:inline-block; width:14px; height:14px; border:2px solid var(--muted2); border-top-color:var(--accent); border-radius:50%; animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+@media(max-width:640px){
+  .header-top{flex-wrap:wrap;}
+  .search-wrap{order:3; max-width:100%;}
+  .grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:420px){
+  .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">📦</div>
+    <h1>Inventar MTC Transport</h1>
+    <p>Scannere · Încărcătoare · Imprimante</p>
+    <div id="login-content"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="header-top">
+      <div class="brand"><span class="dot"></span> Inventar MTC</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="global-search" placeholder="Caută serie, tură, nume...">
+        <span class="search-kbd">Ctrl K</span>
+      </div>
+      <div class="header-actions">
+        <span class="role-badge" id="role-badge"></span>
+        <button class="btn btn-ghost" id="reset-pin-btn" style="display:none" onclick="resetOperatorPin()">Resetează PIN Raluca</button>
+        <button class="btn btn-ghost" onclick="logout()">Ieșire</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-page="soferi" onclick="switchTab('soferi')">👤 Șoferi &amp; Ture <span class="count" id="cnt-soferi">0</span></div>
+      <div class="tab" data-page="scannere" onclick="switchTab('scannere')">📷 Scannere <span class="count" id="cnt-scannere">0</span></div>
+      <div class="tab" data-page="incarcatoare" onclick="switchTab('incarcatoare')">🔌 Încărcătoare <span class="count" id="cnt-incarcatoare">0</span></div>
+      <div class="tab" data-page="imprimante" onclick="switchTab('imprimante')">🖨 Imprimante <span class="count" id="cnt-imprimante">0</span></div>
+      <div class="tab" data-page="statistici" onclick="switchTab('statistici')">📊 Statistici</div>
+    </div>
+  </header>
+
+  <main>
+    <div id="import-bar">
+      <div class="txt">Baza de date e goală. Poți importa datele inițiale din fișierele Excel (<b id="import-count">0</b> înregistrări: șoferi, scannere, încărcătoare, imprimante).</div>
+      <button class="btn btn-primary" onclick="runImport()" id="import-btn">Importă datele inițiale</button>
+    </div>
+
+    <!-- SOFERI -->
+    <div class="page active" id="page-soferi">
+      <div class="section-head">
+        <div>
+          <h2>Șoferi &amp; Ture</h2>
+          <div class="sub">Click pe un șofer pentru a vedea / atribui echipamentele lui</div>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-primary" onclick="openSoferModal()">+ Șofer nou</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-chip active" data-loc="toate" onclick="filterSoferi('toate')">Toate</div>
+        <div class="filter-chip" data-loc="Ruhstorf" onclick="filterSoferi('Ruhstorf')">Ruhstorf</div>
+        <div class="filter-chip" data-loc="Eiselfing" onclick="filterSoferi('Eiselfing')">Eiselfing</div>
+      </div>
+      <div id="soferi-list"></div>
+    </div>
+
+    <!-- SCANNERE -->
+    <div class="page" id="page-scannere">
+      <div class="section-head">
+        <div><h2>Scannere</h2><div class="sub">Zebra / handheld — atribuite pe tură</div></div>
+        <div class="head-actions"><button class="btn btn-primary" onclick="openEquipModal('scannere')">+ Scanner nou</button></div>
+      </div>
+      <div class="filter-bar" id="filter-scannere"></div>
+      <div class="grid" id="list-scannere"></div>
+    </div>
+
+    <!-- INCARCATOARE -->
+    <div class="page" id="page-incarcatoare">
+      <div class="section-head">
+        <div><h2>Încărcătoare</h2><div class="sub">Ladestation — atribuite pe tură</div></div>
+        <div class="head-actions"><button class="btn btn-primary" onclick="openEquipModal('incarcatoare')">+ Încărcător nou</button></div>
+      </div>
+      <div class="filter-bar" id="filter-incarcatoare"></div>
+      <div class="grid" id="list-incarcatoare"></div>
+    </div>
+
+    <!-- IMPRIMANTE -->
+    <div class="page" id="page-imprimante">
+      <div class="section-head">
+        <div><h2>Imprimante</h2><div class="sub">Bixolon — atribuite pe tură</div></div>
+        <div class="head-actions"><button class="btn btn-primary" onclick="openEquipModal('imprimante')">+ Imprimantă nouă</button></div>
+      </div>
+      <div class="filter-bar" id="filter-imprimante"></div>
+      <div class="grid" id="list-imprimante"></div>
+    </div>
+
+    <!-- STATISTICI -->
+    <div class="page" id="page-statistici">
+      <div class="section-head"><div><h2>Statistici</h2><div class="sub">Acoperire echipamente pe tură</div></div></div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="group-title">Ture fără echipament complet <span class="n" id="incomplete-n"></span></div>
+      <div class="grid" id="incomplete-list"></div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ======================= CONFIG ======================= */
+const ADMIN_PIN = "060823";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBr_W2OXS6HVj84_-6frm3d8NuPqkoeTh0",
+  authDomain: "inventar-e2b3a.firebaseapp.com",
+  projectId: "inventar-e2b3a",
+  storageBucket: "inventar-e2b3a.firebasestorage.app",
+  messagingSenderId: "868825400098",
+  appId: "1:868825400098:web:8dcfc52131aa8316315b7b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ======================= SEED DATA (din Excel) ======================= */
+const SEED_SOFERI = [{"tura": "379", "nume": "Pop Marcel", "locatie": "Ruhstorf"}, {"tura": "380", "nume": "Stan Ionel", "locatie": "Ruhstorf"}, {"tura": "381", "nume": "Bitiusca Gabriel", "locatie": "Ruhstorf"}, {"tura": "392", "nume": "Ciobotaru Adrian", "locatie": "Ruhstorf"}, {"tura": "395", "nume": "Farkas Rudolf", "locatie": "Ruhstorf"}, {"tura": "397", "nume": "Maricosul Adelin", "locatie": "Ruhstorf"}, {"tura": "405", "nume": "Zestrea Mihail", "locatie": "Ruhstorf"}, {"tura": "409", "nume": "Tuca Valentin", "locatie": "Ruhstorf"}, {"tura": "410", "nume": "Ciobotaru Iulian", "locatie": "Ruhstorf"}, {"tura": "412", "nume": "Moise Alexandru", "locatie": "Ruhstorf"}, {"tura": "422", "nume": "Bisoc Ionut", "locatie": "Ruhstorf"}, {"tura": "428", "nume": "Birliba Mihaela", "locatie": "Ruhstorf"}, {"tura": "441", "nume": "Stinga Valeriu", "locatie": "Ruhstorf"}, {"tura": "458", "nume": "Ciobotaru Larisa", "locatie": "Ruhstorf"}, {"tura": "494", "nume": "Ferent Simon", "locatie": "Ruhstorf"}, {"tura": "496", "nume": "Iacob Mihai", "locatie": "Ruhstorf"}, {"tura": "500", "nume": "Mereacre Mihail", "locatie": "Ruhstorf"}, {"tura": "502", "nume": "Serban Florin", "locatie": "Ruhstorf"}, {"tura": "505", "nume": "Buciu Petre", "locatie": "Ruhstorf"}, {"tura": "509", "nume": "Dutescu Daniel", "locatie": "Ruhstorf"}, {"tura": "510", "nume": "Feraru Razvan", "locatie": "Ruhstorf"}, {"tura": "513", "nume": "Mihai Adrian", "locatie": "Ruhstorf"}, {"tura": "522", "nume": "Dobinda Dumitru", "locatie": "Ruhstorf"}, {"tura": "529", "nume": "Crainic Adrian", "locatie": "Ruhstorf"}, {"tura": "531", "nume": "Rudareanu Vladut", "locatie": "Ruhstorf"}, {"tura": "532", "nume": "Maies Antonio", "locatie": "Ruhstorf"}, {"tura": "534", "nume": "Macarie Paul", "locatie": "Ruhstorf"}, {"tura": "536", "nume": "Musteata Ioan", "locatie": "Ruhstorf"}, {"tura": "537", "nume": "Sparios Eduard", "locatie": "Ruhstorf"}, {"tura": "538", "nume": "Raghinaru Marian", "locatie": "Ruhstorf"}, {"tura": "540", "nume": "Stanciu Dumitru", "locatie": "Ruhstorf"}, {"tura": "541", "nume": "Plesca Mihai", "locatie": "Ruhstorf"}, {"tura": "542", "nume": "Cazan Ionut", "locatie": "Ruhstorf"}, {"tura": "543", "nume": "Bejenaru Ioan", "locatie": "Ruhstorf"}, {"tura": "544", "nume": "Badea Madalin", "locatie": "Ruhstorf"}, {"tura": "545", "nume": "Bainoczi Razvan", "locatie": "Ruhstorf"}, {"tura": "547", "nume": "Margau Rafael", "locatie": "Ruhstorf"}, {"tura": "548", "nume": "Burlacu Andrei", "locatie": "Ruhstorf"}];
+const SEED_SCANNERE = [{"serial": "01882601006404", "tura": "L4", "note": ""}, {"serial": "01882601006385", "tura": "551", "note": ""}, {"serial": "01882601006490", "tura": "522", "note": ""}, {"serial": "01882601006466", "tura": "AFNUS 2", "note": ""}, {"serial": "01882601006386", "tura": "549", "note": ""}, {"serial": "01882601006433", "tura": "513", "note": ""}, {"serial": "01882601006461", "tura": "496", "note": ""}, {"serial": "01882601006492", "tura": "L2", "note": ""}, {"serial": "01882601006398", "tura": "502", "note": ""}, {"serial": "01882601006397", "tura": "531", "note": ""}, {"serial": "01882601006367", "tura": "505", "note": ""}, {"serial": "01882601006366", "tura": "422", "note": ""}, {"serial": "01882601006373", "tura": "542", "note": ""}, {"serial": "01882601006374", "tura": "409", "note": ""}, {"serial": "01882601006382", "tura": "545", "note": ""}, {"serial": "01882601006381", "tura": "380", "note": ""}, {"serial": "01882601006396", "tura": "537", "note": ""}, {"serial": "01882601006302", "tura": "547", "note": ""}, {"serial": "01882601006303", "tura": "412", "note": ""}, {"serial": "01882601006307", "tura": "544", "note": ""}, {"serial": "01882601006305", "tura": "441", "note": ""}, {"serial": "01882601006365", "tura": "541", "note": ""}, {"serial": "01882601006339", "tura": "552", "note": ""}, {"serial": "01882601006347", "tura": "405", "note": ""}, {"serial": "01882601006345", "tura": "458", "note": ""}, {"serial": "01882601006309", "tura": "L1", "note": ""}, {"serial": "01882601006436", "tura": "410", "note": ""}, {"serial": "01882601006350", "tura": "397", "note": ""}, {"serial": "01882601006351", "tura": "494", "note": ""}, {"serial": "01882601006392", "tura": "392", "note": ""}, {"serial": "01882601006402", "tura": "L3", "note": ""}, {"serial": "01882601006440", "tura": "509", "note": ""}, {"serial": "01882601006413", "tura": "532", "note": ""}, {"serial": "01882601006407", "tura": "534", "note": ""}, {"serial": "01882601006426", "tura": "428", "note": ""}, {"serial": "01882601006423", "tura": "381", "note": ""}, {"serial": "01882601006427", "tura": "549", "note": ""}, {"serial": "01882601006406", "tura": "543", "note": ""}, {"serial": "01882601006425", "tura": "529", "note": ""}, {"serial": "01882601006410", "tura": "500", "note": ""}, {"serial": "01882601006415", "tura": "LAGER", "note": ""}, {"serial": "01882601006448", "tura": "LAGER", "note": ""}, {"serial": "01882601006361", "tura": "LAGER", "note": ""}, {"serial": "01882601006405", "tura": "548", "note": ""}, {"serial": "01882601006973", "tura": "508", "note": ""}, {"serial": "01882601006995", "tura": "536", "note": ""}, {"serial": "01882601006179", "tura": "553", "note": ""}, {"serial": "01882601006298", "tura": "550", "note": ""}, {"serial": "01882602035501", "tura": "AFNUS 1", "note": ""}, {"serial": "01882605003623", "tura": "510", "note": ""}, {"serial": "01882601006567", "tura": "538", "note": ""}];
+const SEED_INCARCATOARE = [{"serial": "07072550010882", "tura": "538", "note": ""}, {"serial": "07072550010883", "tura": "536", "note": ""}, {"serial": "07072550010884", "tura": "522", "note": ""}, {"serial": "07072550010885", "tura": "545", "note": ""}, {"serial": "07072550010886", "tura": "LAGER", "note": ""}, {"serial": "07072550010887", "tura": "549", "note": ""}, {"serial": "07072550010888", "tura": "513", "note": ""}, {"serial": "07072550010889", "tura": "496", "note": ""}, {"serial": "07072550010890", "tura": "548", "note": ""}, {"serial": "07072550010891", "tura": "502", "note": ""}, {"serial": "07072550010892", "tura": "531", "note": ""}, {"serial": "07072550010893", "tura": "505", "note": ""}, {"serial": "07072550010894", "tura": "LAGER", "note": "TRIMIS INAPOI"}, {"serial": "07072550010895", "tura": "542", "note": ""}, {"serial": "07072550010896", "tura": "409", "note": ""}, {"serial": "07072550010897", "tura": "553", "note": ""}, {"serial": "07072550010898", "tura": "537", "note": ""}, {"serial": "07072550010899", "tura": "547", "note": ""}, {"serial": "07072550010900", "tura": "405", "note": ""}, {"serial": "07072550010901", "tura": "544", "note": ""}, {"serial": "07072550010822", "tura": "441", "note": ""}, {"serial": "07072550010823", "tura": "541", "note": ""}, {"serial": "07072550010824", "tura": "395", "note": ""}, {"serial": "07072550010825", "tura": "LH LG", "note": ""}, {"serial": "07072550010826", "tura": "458", "note": ""}, {"serial": "07072550010827", "tura": "379", "note": ""}, {"serial": "07072550010828", "tura": "410", "note": ""}, {"serial": "07072550010829", "tura": "397", "note": ""}, {"serial": "07072550010830", "tura": "494", "note": ""}, {"serial": "07072550010831", "tura": "392", "note": ""}, {"serial": "07072550010832", "tura": "510", "note": ""}, {"serial": "07072550010833", "tura": "509", "note": ""}, {"serial": "07072550010834", "tura": "532", "note": ""}, {"serial": "07072550010835", "tura": "534", "note": ""}, {"serial": "07072550010836", "tura": "428", "note": ""}, {"serial": "07072550010837", "tura": "LAGER", "note": "TRIMIS INAPOI"}, {"serial": "07072550010838", "tura": "549", "note": ""}, {"serial": "07072550010839", "tura": "543", "note": ""}, {"serial": "07072550010840", "tura": "LAGER", "note": ""}, {"serial": "07072550010841", "tura": "LAGER", "note": ""}, {"serial": "07072550008700", "tura": "LAGER", "note": ""}, {"serial": "07072550008705", "tura": "552", "note": ""}, {"serial": "07072550008711", "tura": "422", "note": ""}, {"serial": "07072550008713", "tura": "LAGER", "note": ""}, {"serial": "07072550008715", "tura": "380", "note": ""}, {"serial": "07072550008714", "tura": "551", "note": ""}, {"serial": "07072548001966", "tura": "LAGER", "note": ""}, {"serial": "07072548001967", "tura": "LAGER", "note": ""}, {"serial": "07072548001962", "tura": "LAGER", "note": ""}, {"serial": "09442602079960", "tura": "CHARGE", "note": ""}, {"serial": "09442602079959", "tura": "CHARGE", "note": ""}];
+const SEED_IMPRIMANTE = [{"serial": "HEREDCVKA25100961", "tura": "379", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100962", "tura": "380", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100963", "tura": "381", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100964", "tura": "392", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100965", "tura": "395", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100966", "tura": "397", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100967", "tura": "399", "serieTip": "A", "note": "LAGER"}, {"serial": "HEREDCVKA25100968", "tura": "405", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100969", "tura": "409", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100970", "tura": "410", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100971", "tura": "412", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100972", "tura": "422", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100973", "tura": "428", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100974", "tura": "441", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100975", "tura": "458", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100976", "tura": "494", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100977", "tura": "496", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100978", "tura": "500", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100979", "tura": "502", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100980", "tura": "505", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100981", "tura": "509", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100982", "tura": "510", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100983", "tura": "513", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100984", "tura": "522", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100985", "tura": "529", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100986", "tura": "531", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100987", "tura": "532", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100988", "tura": "534", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100989", "tura": "536", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100990", "tura": "537", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100991", "tura": "538", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100992", "tura": "540", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100993", "tura": "541", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100994", "tura": "542", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100995", "tura": "543", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100996", "tura": "544", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107377", "tura": "545", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107378", "tura": "547", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107379", "tura": "548", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKB25100961", "tura": "553", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100962", "tura": "380", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100963", "tura": "381", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100964", "tura": "392", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100965", "tura": "552", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100966", "tura": "397", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100967", "tura": "", "serieTip": "B", "note": "LAGER"}, {"serial": "HEREDCVKB25100968", "tura": "405", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100969", "tura": "409", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100970", "tura": "410", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100971", "tura": "412", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100972", "tura": "422", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100973", "tura": "428", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100974", "tura": "441", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100975", "tura": "458", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100976", "tura": "494", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100977", "tura": "496", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100978", "tura": "500", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100979", "tura": "502", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100980", "tura": "505", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100981", "tura": "509", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100982", "tura": "510", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100983", "tura": "513", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100984", "tura": "522", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100985", "tura": "529", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100986", "tura": "531", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100987", "tura": "532", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100988", "tura": "534", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100989", "tura": "536", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100990", "tura": "537", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100991", "tura": "538", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100992", "tura": "540", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100993", "tura": "541", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100994", "tura": "542", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100995", "tura": "543", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100996", "tura": "544", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKA25107377", "tura": "545", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107378", "tura": "547", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107379", "tura": "548", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107380", "tura": "549", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107389", "tura": "", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107390", "tura": "", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107391", "tura": "", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107392", "tura": "551", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25101398", "tura": "", "serieTip": "A", "note": "AFNUS 1"}, {"serial": "HEREDCVKA25101399", "tura": "", "serieTip": "A", "note": ""}, {"serial": "STDWVKA25090961", "tura": "", "serieTip": "C", "note": "CHARGE"}, {"serial": "STDWVKA25090962", "tura": "", "serieTip": "C", "note": "CHARGE"}];
+
+const SPECIAL_STATUSES = ["LAGER","L1","L2","L3","L4","AFNUS 1","AFNUS 2","LH LG","CHARGE","TRIMIS INAPOI"];
+const EQUIP_META = {
+  scannere: { label: "Scanner", icon: "📷", collection: "scannere" },
+  incarcatoare: { label: "Încărcător", icon: "🔌", collection: "incarcatoare" },
+  imprimante: { label: "Imprimantă", icon: "🖨", collection: "imprimante" }
+};
+
+let soferi = [], scannere = [], incarcatoare = [], imprimante = [];
+let soferiFilter = "toate";
+let unsub = [];
+
+/* ======================= AUTH ======================= */
+// Admin (Paul) — PIN fix, nu e stocat în Firestore.
+// Operator (Raluca) — își creează singură PIN-ul la prima folosire; se salvează în Firestore (config/operatorAuth)
+// și rămâne valabil oricând deschide aplicația (nu doar 24h ca sesiunea locală).
+const OPERATOR_DOC = () => db.collection("config").doc("operatorAuth");
+let currentRole = null; // 'admin' | 'operator'
+
+function checkSavedAuth(){
+  const s = localStorage.getItem("inventarAuth");
+  if(s){
+    try{
+      const d = JSON.parse(s);
+      if(d.exp > Date.now()){ currentRole = d.role; startApp(); return; }
+    }catch(e){}
+  }
+  document.getElementById("login-screen").style.display = "flex";
+  renderLoginLoading();
+  OPERATOR_DOC().get().then(doc=>{
+    if(doc.exists && doc.data().pin){
+      renderLoginOperator(doc.data().nume || "Raluca");
+    }else{
+      renderLoginCreate();
+    }
+  }).catch(err=>{
+    console.error(err);
+    renderLoginOperator("Raluca"); // fallback dacă nu poate citi (nu blocăm accesul admin)
+  });
+}
+
+function renderLoginLoading(){
+  document.getElementById("login-content").innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:13px">Se încarcă...</div>`;
+}
+
+function renderLoginCreate(){
+  document.getElementById("login-content").innerHTML = `
+    <div style="font-size:13px;color:var(--text);margin-bottom:14px;text-align:left">
+      Bine ai venit! Se pare că e prima dată — creează-ți un PIN cu care vei intra data viitoare.
+    </div>
+    <div class="form-group"><label>Numele tău</label><input id="create-nume" value="Raluca" placeholder="Nume"></div>
+    <div class="form-group"><label>PIN nou</label><input type="password" id="create-pin" maxlength="10" inputmode="numeric" placeholder="alege un PIN"></div>
+    <div class="form-group"><label>Confirmă PIN</label><input type="password" id="create-pin2" maxlength="10" inputmode="numeric" placeholder="scrie-l din nou"></div>
+    <button class="btn btn-primary btn-block" onclick="createOperatorPin()">Creează cont</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-switch">Ești admin? <a onclick="renderLoginAdmin()">Intră cu PIN admin</a></div>
+  `;
+}
+async function createOperatorPin(){
+  const nume = document.getElementById("create-nume").value.trim() || "Raluca";
+  const pin = document.getElementById("create-pin").value.trim();
+  const pin2 = document.getElementById("create-pin2").value.trim();
+  const err = document.getElementById("login-err");
+  if(pin.length < 4){ err.textContent = "PIN-ul trebuie să aibă cel puțin 4 caractere"; return; }
+  if(pin !== pin2){ err.textContent = "PIN-urile nu coincid"; return; }
+  try{
+    await OPERATOR_DOC().set({pin, nume, createdAt: Date.now()});
+    currentRole = "operator";
+    localStorage.setItem("inventarAuth", JSON.stringify({exp: Date.now() + 24*3600*1000, role:"operator", nume}));
+    startApp();
+  }catch(e){
+    console.error(e);
+    err.textContent = "Eroare la salvare — verifică Firestore Rules";
+  }
+}
+
+function renderLoginOperator(nume){
+  document.getElementById("login-content").innerHTML = `
+    <div class="form-group"><label>PIN (${esc(nume)})</label><input type="password" id="pin-input" maxlength="10" placeholder="••••••" inputmode="numeric"></div>
+    <button class="btn btn-primary btn-block" onclick="tryLoginOperator('${esc(nume)}')">Intră</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-switch">Ești admin? <a onclick="renderLoginAdmin()">Intră cu PIN admin</a></div>
+  `;
+  const inp = document.getElementById("pin-input");
+  inp.focus();
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLoginOperator(nume); });
+}
+async function tryLoginOperator(nume){
+  const pin = document.getElementById("pin-input").value.trim();
+  try{
+    const doc = await OPERATOR_DOC().get();
+    if(doc.exists && doc.data().pin === pin){
+      currentRole = "operator";
+      localStorage.setItem("inventarAuth", JSON.stringify({exp: Date.now() + 24*3600*1000, role:"operator", nume: doc.data().nume || nume}));
+      startApp();
+    }else{
+      document.getElementById("login-err").textContent = "PIN greșit";
+      document.getElementById("pin-input").value = "";
+    }
+  }catch(e){
+    console.error(e);
+    document.getElementById("login-err").textContent = "Eroare la verificare";
+  }
+}
+
+function renderLoginAdmin(){
+  document.getElementById("login-content").innerHTML = `
+    <div class="form-group"><label>PIN admin</label><input type="password" id="pin-input" maxlength="10" placeholder="••••••" inputmode="numeric"></div>
+    <button class="btn btn-primary btn-block" onclick="tryLoginAdmin()">Intră</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-switch"><a onclick="checkSavedAuth()">← Înapoi</a></div>
+  `;
+  const inp = document.getElementById("pin-input");
+  inp.focus();
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLoginAdmin(); });
+}
+function tryLoginAdmin(){
+  const pin = document.getElementById("pin-input").value.trim();
+  if(pin === ADMIN_PIN){
+    currentRole = "admin";
+    localStorage.setItem("inventarAuth", JSON.stringify({exp: Date.now() + 24*3600*1000, role:"admin"}));
+    startApp();
+  }else{
+    document.getElementById("login-err").textContent = "PIN greșit";
+    document.getElementById("pin-input").value = "";
+  }
+}
+
+function logout(){
+  localStorage.removeItem("inventarAuth");
+  location.reload();
+}
+function startApp(){
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+  const badge = document.getElementById("role-badge");
+  if(currentRole === "admin"){
+    badge.textContent = "👑 Admin";
+    badge.classList.add("is-admin");
+    document.getElementById("reset-pin-btn").style.display = "inline-block";
+  }else{
+    const s = JSON.parse(localStorage.getItem("inventarAuth")||"{}");
+    badge.textContent = "👤 " + (s.nume || "Raluca");
+  }
+  attachListeners();
+}
+async function resetOperatorPin(){
+  if(!confirm("Ștergi PIN-ul Ralucăi? Data viitoare când deschide aplicația i se va cere să-și creeze un PIN nou.")) return;
+  try{
+    await OPERATOR_DOC().delete();
+    showToast("PIN resetat");
+  }catch(e){ console.error(e); showToast("Eroare la resetare"); }
+}
+
+/* ======================= FIRESTORE LISTENERS ======================= */
+function attachListeners(){
+  unsub.push(db.collection("soferi").onSnapshot(snap=>{
+    soferi = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    soferi.sort((a,b)=> (parseInt(a.tura)||99999) - (parseInt(b.tura)||99999));
+    renderAll();
+  }, err=>console.error(err)));
+  unsub.push(db.collection("scannere").onSnapshot(snap=>{
+    scannere = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>console.error(err)));
+  unsub.push(db.collection("incarcatoare").onSnapshot(snap=>{
+    incarcatoare = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>console.error(err)));
+  unsub.push(db.collection("imprimante").onSnapshot(snap=>{
+    imprimante = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>console.error(err)));
+}
+
+/* ======================= IMPORT INIȚIAL ======================= */
+async function checkImportNeeded(){
+  // dă un tick ca listenerele să apuce să încarce
+  setTimeout(()=>{
+    if(soferi.length===0 && scannere.length===0 && incarcatoare.length===0 && imprimante.length===0){
+      const total = SEED_SOFERI.length + SEED_SCANNERE.length + SEED_INCARCATOARE.length + SEED_IMPRIMANTE.length;
+      document.getElementById("import-count").textContent = total;
+      document.getElementById("import-bar").classList.add("show");
+    }
+  }, 1200);
+}
+async function runImport(){
+  const btn = document.getElementById("import-btn");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Importă...';
+  try{
+    const batchOps = [];
+    for(const s of SEED_SOFERI) batchOps.push(db.collection("soferi").add({...s, activ:true, createdAt: Date.now()}));
+    for(const s of SEED_SCANNERE) batchOps.push(db.collection("scannere").add({...s, updatedAt: Date.now()}));
+    for(const s of SEED_INCARCATOARE) batchOps.push(db.collection("incarcatoare").add({...s, updatedAt: Date.now()}));
+    for(const s of SEED_IMPRIMANTE) batchOps.push(db.collection("imprimante").add({...s, updatedAt: Date.now()}));
+    // Firestore nu are batch cu add() auto-id ușor de combinat; facem în serii mici paralel
+    const chunkSize = 20;
+    for(let i=0;i<batchOps.length;i+=chunkSize){
+      await Promise.all(batchOps.slice(i,i+chunkSize));
+    }
+    document.getElementById("import-bar").classList.remove("show");
+    showToast("Import reușit — " + batchOps.length + " înregistrări");
+  }catch(e){
+    console.error(e);
+    showToast("Eroare la import — vezi consola");
+    btn.disabled = false; btn.textContent = "Importă datele inițiale";
+  }
+}
+
+/* ======================= HELPERS ======================= */
+function isSpecial(tura){
+  if(!tura) return false;
+  return SPECIAL_STATUSES.some(s => s.toLowerCase() === String(tura).trim().toLowerCase());
+}
+function findSofer(tura){
+  if(!tura || isSpecial(tura)) return null;
+  return soferi.find(s => String(s.tura).trim() === String(tura).trim());
+}
+function turaLabel(tura, note){
+  if(!tura || String(tura).trim()===""){
+    return note ? {text: note, cls:"badge-repair"} : {text:"Neatribuit", cls:"badge-none"};
+  }
+  if(isSpecial(tura)){
+    const cls = tura.toUpperCase().includes("TRIMIS") || tura.toUpperCase().includes("REPAR") ? "badge-repair" : "badge-depot";
+    return {text: tura, cls};
+  }
+  const sof = findSofer(tura);
+  return {text: "Tură " + tura + (sof ? " · " + sof.nume : ""), cls:"badge-tura"};
+}
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+function switchTab(page){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.page===page));
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active", p.id==="page-"+page));
+}
+function closeModal(){ document.getElementById("modal-overlay").classList.remove("show"); }
+function openModal(html){
+  document.getElementById("modal-content").innerHTML = html;
+  document.getElementById("modal-overlay").classList.add("show");
+}
+document.getElementById("modal-overlay").addEventListener("click", e=>{ if(e.target.id==="modal-overlay") closeModal(); });
+
+/* ======================= RENDER ======================= */
+function renderAll(){
+  document.getElementById("cnt-soferi").textContent = soferi.length;
+  document.getElementById("cnt-scannere").textContent = scannere.length;
+  document.getElementById("cnt-incarcatoare").textContent = incarcatoare.length;
+  document.getElementById("cnt-imprimante").textContent = imprimante.length;
+  renderSoferi();
+  renderEquipList("scannere", scannere);
+  renderEquipList("incarcatoare", incarcatoare);
+  renderEquipList("imprimante", imprimante);
+  renderStats();
+  checkImportNeeded();
+}
+
+function equipForTura(list, tura){
+  return list.find(e => e.tura && String(e.tura).trim() === String(tura).trim());
+}
+
+function renderSoferi(){
+  const el = document.getElementById("soferi-list");
+  let list = soferi.slice();
+  if(soferiFilter !== "toate") list = list.filter(s=>s.locatie===soferiFilter);
+  const q = document.getElementById("global-search").value.trim().toLowerCase();
+  if(q) list = list.filter(s => (s.nume||"").toLowerCase().includes(q) || String(s.tura||"").includes(q));
+
+  if(list.length===0){
+    el.innerHTML = '<div class="empty-state"><div class="icon">👤</div><div class="msg">Niciun șofer</div><div class="hint">Adaugă un șofer nou sau schimbă filtrul</div></div>';
+    return;
+  }
+
+  function card(s){
+    const scan = equipForTura(scannere, s.tura);
+    const inc = equipForTura(incarcatoare, s.tura);
+    const imp = equipForTura(imprimante, s.tura);
+    return `<div class="driver-card" onclick='openSoferDetail(${JSON.stringify(s.id)})'>
+      <div class="name">${esc(s.nume)}</div>
+      <div class="tura-num">Tură ${esc(s.tura||"—")} · ${esc(s.locatie)}</div>
+      <div class="equip-row">
+        <span class="equip-dot ${scan?'ok':'missing'}">📷 ${scan?'atribuit':'—'}</span>
+        <span class="equip-dot ${inc?'ok':'missing'}">🔌 ${inc?'atribuit':'—'}</span>
+        <span class="equip-dot ${imp?'ok':'missing'}">🖨 ${imp?'atribuit':'—'}</span>
+      </div>
+    </div>`;
+  }
+  const groups = {};
+  list.forEach(s=>{ (groups[s.locatie]=groups[s.locatie]||[]).push(s); });
+  let html = "";
+  const order = ["Ruhstorf","Eiselfing"];
+  order.forEach(loc=>{
+    if(!groups[loc] || !groups[loc].length) return;
+    const color = loc==="Ruhstorf" ? "var(--ruhstorf)" : "var(--eiselfing)";
+    html += `<div class="group-title"><span class="dot" style="background:${color}"></span>${loc} <span class="n">· ${groups[loc].length}</span></div>
+      <div class="grid">${groups[loc].map(card).join("")}</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderEquipList(type, list){
+  const grid = document.getElementById("list-"+type);
+  const filterEl = document.getElementById("filter-"+type);
+  if(!grid) return;
+
+  // filter chips
+  const activeFilter = grid.dataset.filter || "toate";
+  if(filterEl && !filterEl.dataset.built){
+    filterEl.dataset.built = "1";
+    filterEl.innerHTML = `
+      <div class="filter-chip active" data-f="toate">Toate</div>
+      <div class="filter-chip" data-f="atribuite">Atribuite</div>
+      <div class="filter-chip" data-f="depozit">Depozit / status</div>
+      <div class="filter-chip" data-f="neatribuite">Neatribuite</div>`;
+    filterEl.querySelectorAll(".filter-chip").forEach(chip=>{
+      chip.onclick = ()=>{
+        filterEl.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        grid.dataset.filter = chip.dataset.f;
+        renderEquipList(type, window[type]);
+      };
+    });
+  }
+  const filt = grid.dataset.filter || "toate";
+  let items = list.slice();
+  if(filt==="atribuite") items = items.filter(e=> e.tura && !isSpecial(e.tura));
+  if(filt==="depozit") items = items.filter(e=> e.tura && isSpecial(e.tura));
+  if(filt==="neatribuite") items = items.filter(e=> !e.tura || String(e.tura).trim()==="");
+
+  const q = document.getElementById("global-search").value.trim().toLowerCase();
+  if(q) items = items.filter(e => (e.serial||"").toLowerCase().includes(q) || String(e.tura||"").toLowerCase().includes(q) || (findSofer(e.tura)?.nume||"").toLowerCase().includes(q));
+
+  if(items.length===0){
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">'+EQUIP_META[type].icon+'</div><div class="msg">Niciun echipament</div><div class="hint">Adaugă unul nou sau schimbă filtrul</div></div>';
+    return;
+  }
+  items.sort((a,b)=>{
+    const av = parseInt(a.tura), bv = parseInt(b.tura);
+    if(!isNaN(av) && !isNaN(bv)) return av-bv;
+    if(!isNaN(av)) return -1;
+    if(!isNaN(bv)) return 1;
+    return (a.tura||"").localeCompare(b.tura||"");
+  });
+  grid.innerHTML = items.map(e=>{
+    const lbl = turaLabel(e.tura, e.note);
+    return `<div class="card" onclick='openEquipDetail(${JSON.stringify(type)}, ${JSON.stringify(e.id)})'>
+      <div class="top-row">
+        <div><div class="main-label">${EQUIP_META[type].icon} ${esc(e.serial)}</div></div>
+      </div>
+      <span class="badge ${lbl.cls}">${esc(lbl.text)}</span>
+      ${type==='imprimante' && e.serieTip ? `<span class="badge badge-none" style="margin-left:6px">Serie ${esc(e.serieTip)}</span>` : ""}
+      ${e.note && lbl.cls!=='badge-repair' ? `<div class="sub-label" style="margin-top:7px">${esc(e.note)}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+// expose for filter re-render
+window.scannere = scannere; window.incarcatoare = incarcatoare; window.imprimante = imprimante;
+const _origRenderAll = renderAll;
+renderAll = function(){ window.scannere=scannere; window.incarcatoare=incarcatoare; window.imprimante=imprimante; _origRenderAll(); };
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ======================= STATS ======================= */
+function renderStats(){
+  const total = soferi.length;
+  const withScan = soferi.filter(s=>equipForTura(scannere,s.tura)).length;
+  const withInc = soferi.filter(s=>equipForTura(incarcatoare,s.tura)).length;
+  const withImp = soferi.filter(s=>equipForTura(imprimante,s.tura)).length;
+  const complete = soferi.filter(s=>equipForTura(scannere,s.tura)&&equipForTura(incarcatoare,s.tura)&&equipForTura(imprimante,s.tura)).length;
+  const inRepair = [...scannere,...incarcatoare,...imprimante].filter(e=>e.tura && String(e.tura).toUpperCase().includes("TRIMIS")).length;
+
+  document.getElementById("stat-grid").innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Șoferi &amp; ture</div></div>
+    <div class="stat-card"><div class="num">${withScan}/${total}</div><div class="lbl">Cu scanner</div></div>
+    <div class="stat-card"><div class="num">${withInc}/${total}</div><div class="lbl">Cu încărcător</div></div>
+    <div class="stat-card"><div class="num">${withImp}/${total}</div><div class="lbl">Cu imprimantă</div></div>
+    <div class="stat-card ${complete<total?'warn':''}"><div class="num">${complete}/${total}</div><div class="lbl">Dotare completă</div></div>
+    <div class="stat-card ${inRepair>0?'warn':''}"><div class="num">${inRepair}</div><div class="lbl">În reparație</div></div>
+  `;
+  const incomplete = soferi.filter(s=>!(equipForTura(scannere,s.tura)&&equipForTura(incarcatoare,s.tura)&&equipForTura(imprimante,s.tura)));
+  document.getElementById("incomplete-n").textContent = "· " + incomplete.length;
+  document.getElementById("incomplete-list").innerHTML = incomplete.map(s=>{
+    const scan = equipForTura(scannere,s.tura), inc = equipForTura(incarcatoare,s.tura), imp = equipForTura(imprimante,s.tura);
+    return `<div class="driver-card" onclick='openSoferDetail(${JSON.stringify(s.id)})'>
+      <div class="name">${esc(s.nume)}</div>
+      <div class="tura-num">Tură ${esc(s.tura||"—")} · ${esc(s.locatie)}</div>
+      <div class="equip-row">
+        <span class="equip-dot ${scan?'ok':'missing'}">📷 ${scan?'ok':'lipsă'}</span>
+        <span class="equip-dot ${inc?'ok':'missing'}">🔌 ${inc?'ok':'lipsă'}</span>
+        <span class="equip-dot ${imp?'ok':'missing'}">🖨 ${imp?'ok':'lipsă'}</span>
+      </div>
+    </div>`;
+  }).join("") || '<div class="empty-state" style="grid-column:1/-1"><div class="icon">✅</div><div class="msg">Toți șoferii au dotare completă</div></div>';
+}
+
+/* ======================= SOFER MODAL ======================= */
+function openSoferModal(data){
+  const editId = data?.id || null;
+  openModal(`
+    <h3>${editId?"Editează șofer":"Șofer nou"} <span class="x" onclick="closeModal()">&times;</span></h3>
+    <div class="form-group"><label>Număr tură</label><input id="sf-tura" value="${data?esc(data.tura):""}" placeholder="ex: 538"></div>
+    <div class="form-group"><label>Nume și prenume</label><input id="sf-nume" value="${data?esc(data.nume):""}" placeholder="Nume Prenume"></div>
+    <div class="form-group"><label>Locație</label>
+      <select id="sf-loc">
+        <option value="Ruhstorf" ${(!data||data.locatie==='Ruhstorf')?'selected':''}>Ruhstorf</option>
+        <option value="Eiselfing" ${data?.locatie==='Eiselfing'?'selected':''}>Eiselfing</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      ${editId?'<button class="btn btn-danger" onclick="deleteSofer(\''+editId+'\')">Șterge</button>':''}
+      <button class="btn btn-primary" onclick="saveSofer(${editId?"'"+editId+"'":null})">Salvează</button>
+    </div>
+  `);
+}
+async function saveSofer(id){
+  const tura = document.getElementById("sf-tura").value.trim();
+  const nume = document.getElementById("sf-nume").value.trim();
+  const locatie = document.getElementById("sf-loc").value;
+  if(!nume){ showToast("Numele e obligatoriu"); return; }
+  try{
+    if(id) await db.collection("soferi").doc(id).update({tura, nume, locatie});
+    else await db.collection("soferi").add({tura, nume, locatie, activ:true, createdAt:Date.now()});
+    closeModal();
+    showToast("Salvat");
+  }catch(e){ console.error(e); showToast("Eroare la salvare"); }
+}
+async function deleteSofer(id){
+  if(!confirm("Ștergi acest șofer din listă?")) return;
+  try{ await db.collection("soferi").doc(id).delete(); closeModal(); showToast("Șters"); }
+  catch(e){ console.error(e); showToast("Eroare la ștergere"); }
+}
+function openSoferDetail(id){
+  const s = soferi.find(x=>x.id===id);
+  if(!s) return;
+  const scan = equipForTura(scannere, s.tura);
+  const inc = equipForTura(incarcatoare, s.tura);
+  const imp = equipForTura(imprimante, s.tura);
+  openModal(`
+    <h3>${esc(s.nume)} <span class="x" onclick="closeModal()">&times;</span></h3>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:4px">Tură ${esc(s.tura||"—")} · ${esc(s.locatie)}</div>
+    <div class="linked-equip">
+      <div class="li"><span class="lbl">📷 Scanner</span><span>${scan?esc(scan.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span></div>
+      <div class="li"><span class="lbl">🔌 Încărcător</span><span>${inc?esc(inc.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span></div>
+      <div class="li"><span class="lbl">🖨 Imprimantă</span><span>${imp?esc(imp.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick='openSoferModal(${JSON.stringify(s)})'>Editează</button>
+      <button class="btn btn-primary" onclick="closeModal()">Închide</button>
+    </div>
+  `);
+}
+function filterSoferi(loc){
+  soferiFilter = loc;
+  document.querySelectorAll("#page-soferi .filter-chip").forEach(c=>c.classList.toggle("active", c.dataset.loc===loc));
+  renderSoferi();
+}
+
+/* ======================= EQUIP MODAL ======================= */
+function openEquipModal(type, data){
+  const editId = data?.id || null;
+  const meta = EQUIP_META[type];
+  openModal(`
+    <h3>${editId?"Editează "+meta.label.toLowerCase():meta.label+" nou"} <span class="x" onclick="closeModal()">&times;</span></h3>
+    <div class="form-group"><label>Serie</label><input id="eq-serial" value="${data?esc(data.serial):""}" placeholder="ex: 01882601006404"></div>
+    <div class="form-group"><label>Tură (sau status special)</label><input id="eq-tura" value="${data?esc(data.tura):""}" placeholder="ex: 538, LAGER, TRIMIS INAPOI..." list="tura-suggestions"></div>
+    <datalist id="tura-suggestions">
+      ${soferi.map(s=>`<option value="${esc(s.tura)}">`).join("")}
+      ${SPECIAL_STATUSES.map(s=>`<option value="${s}">`).join("")}
+    </datalist>
+    <div class="quick-status">
+      ${SPECIAL_STATUSES.map(s=>`<button type="button" onclick="document.getElementById('eq-tura').value='${s}'">${s}</button>`).join("")}
+    </div>
+    ${type==='imprimante'?`<div class="form-group" style="margin-top:13px"><label>Serie tip (A/B)</label><input id="eq-serieTip" value="${data?esc(data.serieTip||''):''}" placeholder="A sau B"></div>`:''}
+    <div class="form-group" style="margin-top:13px"><label>Notă</label><input id="eq-note" value="${data?esc(data.note||''):''}" placeholder="opțional"></div>
+    <div class="modal-actions">
+      ${editId?'<button class="btn btn-danger" onclick="deleteEquip(\''+type+'\',\''+editId+'\')">Șterge</button>':''}
+      <button class="btn btn-primary" onclick="saveEquip('${type}'${editId?",'"+editId+"'":",null"})">Salvează</button>
+    </div>
+  `);
+}
+async function saveEquip(type, id){
+  const serial = document.getElementById("eq-serial").value.trim();
+  const tura = document.getElementById("eq-tura").value.trim();
+  const note = document.getElementById("eq-note").value.trim();
+  const serieTip = document.getElementById("eq-serieTip") ? document.getElementById("eq-serieTip").value.trim() : undefined;
+  if(!serial){ showToast("Seria e obligatorie"); return; }
+  const payload = {serial, tura, note, updatedAt: Date.now()};
+  if(serieTip!==undefined) payload.serieTip = serieTip;
+  try{
+    if(id) await db.collection(type).doc(id).update(payload);
+    else await db.collection(type).add(payload);
+    closeModal();
+    showToast("Salvat");
+  }catch(e){ console.error(e); showToast("Eroare la salvare"); }
+}
+async function deleteEquip(type, id){
+  if(!confirm("Ștergi acest echipament?")) return;
+  try{ await db.collection(type).doc(id).delete(); closeModal(); showToast("Șters"); }
+  catch(e){ console.error(e); showToast("Eroare la ștergere"); }
+}
+function openEquipDetail(type, id){
+  const list = type==='scannere'?scannere:type==='incarcatoare'?incarcatoare:imprimante;
+  const item = list.find(x=>x.id===id);
+  if(item) openEquipModal(type, item);
+}
+
+/* ======================= SEARCH ======================= */
+document.getElementById("global-search").addEventListener("input", renderAll);
+document.addEventListener("keydown", e=>{
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){
+    e.preventDefault();
+    document.getElementById("global-search").focus();
+  }
+  if(e.key === "Escape") closeModal();
+});
+
+checkSavedAuth();
+</script>
+</body>
+</html>
