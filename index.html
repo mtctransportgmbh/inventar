@@ -620,7 +620,15 @@ function renderSoferi(){
   let list = soferi.slice();
   if(soferiFilter !== "toate") list = list.filter(s=>s.locatie===soferiFilter);
   const q = document.getElementById("global-search").value.trim().toLowerCase();
-  if(q) list = list.filter(s => (s.nume||"").toLowerCase().includes(q) || String(s.tura||"").includes(q));
+  if(q) list = list.filter(s => {
+    if((s.nume||"").toLowerCase().includes(q)) return true;
+    if(String(s.tura||"").toLowerCase().includes(q)) return true;
+    const scan = equipForTura(scannere, s.tura), inc = equipForTura(incarcatoare, s.tura), imp = equipForTura(imprimante, s.tura);
+    if(scan && scan.serial.toLowerCase().includes(q)) return true;
+    if(inc && inc.serial.toLowerCase().includes(q)) return true;
+    if(imp && imp.serial.toLowerCase().includes(q)) return true;
+    return false;
+  });
 
   if(list.length===0){
     el.innerHTML = '<div class="empty-state"><div class="icon">👤</div><div class="msg">Niciun șofer</div><div class="hint">Adaugă un șofer nou sau schimbă filtrul</div></div>';
