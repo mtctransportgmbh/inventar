@@ -185,6 +185,13 @@ main{flex:1; padding:20px; max-width:1180px; width:100%; margin:0 auto;}
 .linked-equip .li{display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:13px; border-bottom:1px solid var(--border);}
 .linked-equip .li:last-child{border:none;}
 .linked-equip .li .lbl{color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;}
+.barcode-box{
+  background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 6px;
+  display:flex; align-items:center; justify-content:center; margin-top:8px;
+}
+.barcode-box canvas{max-width:100%; height:auto;}
+.barcode-mini{margin-top:6px; margin-bottom:10px;}
+.barcode-mini canvas{max-width:100%; height:auto;}
 
 /* STATS */
 .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:24px;}
@@ -330,6 +337,7 @@ main{flex:1; padding:20px; max-width:1180px; width:100%; margin:0 auto;}
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
 <script>
 /* ======================= CONFIG ======================= */
 const ADMIN_PIN = "060823";
@@ -799,19 +807,30 @@ function openSoferDetail(id){
   const scan = equipForTura(scannere, s.tura);
   const inc = equipForTura(incarcatoare, s.tura);
   const imp = equipForTura(imprimante, s.tura);
+  function equipBlock(icon, label, item, canvasId){
+    return `<div style="margin-bottom:14px">
+      <div class="li" style="border:none;padding-bottom:2px">
+        <span class="lbl">${icon} ${label}</span><span>${item?esc(item.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span>
+      </div>
+      ${item?`<div class="barcode-mini"><canvas id="${canvasId}"></canvas></div>`:''}
+    </div>`;
+  }
   openModal(`
     <h3>${esc(s.nume)} <span class="x" onclick="closeModal()">&times;</span></h3>
-    <div style="color:var(--muted);font-size:13px;margin-bottom:4px">Tură ${esc(s.tura||"—")} · ${esc(s.locatie)}</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:14px">Tură ${esc(s.tura||"—")} · ${esc(s.locatie)}</div>
     <div class="linked-equip">
-      <div class="li"><span class="lbl">📷 Scanner</span><span>${scan?esc(scan.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span></div>
-      <div class="li"><span class="lbl">🔌 Încărcător</span><span>${inc?esc(inc.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span></div>
-      <div class="li"><span class="lbl">🖨 Imprimantă</span><span>${imp?esc(imp.serial):'<span style="color:var(--muted2)">neatribuit</span>'}</span></div>
+      ${equipBlock('📷','Scanner',scan,'bc-scan')}
+      ${equipBlock('🔌','Încărcător',inc,'bc-inc')}
+      ${equipBlock('🖨','Imprimantă',imp,'bc-imp')}
     </div>
     <div class="modal-actions">
       <button class="btn" onclick='openSoferModal(${JSON.stringify(s)})'>Editează</button>
       <button class="btn btn-primary" onclick="closeModal()">Închide</button>
     </div>
   `);
+  if(scan) drawBarcode('bc-scan', scan.serial);
+  if(inc) drawBarcode('bc-inc', inc.serial);
+  if(imp) drawBarcode('bc-imp', imp.serial);
 }
 function filterSoferi(loc){
   soferiFilter = loc;
@@ -865,7 +884,38 @@ async function deleteEquip(type, id){
 function openEquipDetail(type, id){
   const list = type==='scannere'?scannere:type==='incarcatoare'?incarcatoare:imprimante;
   const item = list.find(x=>x.id===id);
-  if(item) openEquipModal(type, item);
+  if(!item) return;
+  const meta = EQUIP_META[type];
+  const lbl = turaLabel(item.tura, item.note);
+  openModal(`
+    <h3>${meta.icon} ${esc(item.serial)} <span class="x" onclick="closeModal()">&times;</span></h3>
+    <div style="margin-bottom:10px"><span class="badge ${lbl.cls}">${esc(lbl.text)}</span>
+      ${type==='imprimante' && item.serieTip ? `<span class="badge badge-none" style="margin-left:6px">Serie ${esc(item.serieTip)}</span>` : ""}
+    </div>
+    <div class="barcode-box"><canvas id="bc-detail"></canvas></div>
+    ${item.note ? `<div style="margin-top:10px;font-size:12.5px;color:var(--muted)">${esc(item.note)}</div>` : ""}
+    <div class="modal-actions">
+      <button class="btn" onclick='openEquipModal(${JSON.stringify(type)}, ${JSON.stringify(item)})'>Editează</button>
+      <button class="btn btn-primary" onclick="closeModal()">Închide</button>
+    </div>
+  `);
+  drawBarcode('bc-detail', item.serial, true);
+}
+function drawBarcode(canvasId, value, large){
+  const el = document.getElementById(canvasId);
+  if(!el || typeof JsBarcode === "undefined" || !value) return;
+  try{
+    JsBarcode(el, value, {
+      format: "CODE39",
+      width: large ? 2.2 : 1.5,
+      height: large ? 68 : 40,
+      displayValue: true,
+      fontSize: large ? 15 : 11,
+      margin: 8,
+      background: "#ffffff",
+      lineColor: "#000000"
+    });
+  }catch(e){ console.error("Eroare cod de bare:", value, e); }
 }
 
 /* ======================= SEARCH ======================= */
