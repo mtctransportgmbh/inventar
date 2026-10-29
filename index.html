@@ -485,7 +485,7 @@ function renderLoginOperator(user){
 }
 function renderLoginAdmin(){
   document.getElementById("login-content").innerHTML = `
-    <div class="form-group"><label>PIN admin</label><input type="password" id="pin-input" maxlength="10" placeholder="••••••" inputmode="numeric" autocomplete="current-password"></div>
+    <div class="form-group"><label>PIN admin</label><input type="password" id="pin-input" maxlength="64" placeholder="••••••" inputmode="numeric" autocomplete="current-password"></div>
     <button class="btn btn-primary btn-block" onclick="tryLogin('admin')">Intră</button>
     <div class="login-err" id="login-err"></div>
     <div class="login-switch"><a onclick="renderLoginPicker()">← Înapoi</a></div>
