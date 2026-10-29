@@ -251,7 +251,8 @@ main{flex:1; padding:20px; max-width:1180px; width:100%; margin:0 auto;}
       </div>
       <div class="header-actions">
         <span class="role-badge" id="role-badge"></span>
-        <button class="btn btn-ghost" id="reset-pin-btn" style="display:none" onclick="resetOperatorPin()">Resetează PIN Raluca</button>
+        <button class="btn btn-ghost" id="reset-pin-btn" style="display:none" onclick="resetOperatorPin()">Resetează PIN operator</button>
+        <button class="btn btn-ghost" id="match-btn" style="display:none" onclick="openMatchModal()">🔗 Potrivire șoferi</button>
         <button class="btn btn-ghost" onclick="logout()">Ieșire</button>
       </div>
     </div>
@@ -337,10 +338,12 @@ main{flex:1; padding:20px; max-width:1180px; width:100%; margin:0 auto;}
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
 <script>
 /* ======================= CONFIG ======================= */
-const ADMIN_PIN = "060823";
+// PIN-urile se verifică pe server (funcțiile inventarLogin / inventarSetPin) — nimic secret în pagină.
 
 const firebaseConfig = {
   apiKey: "AIzaSyBr_W2OXS6HVj84_-6frm3d8NuPqkoeTh0",
@@ -353,6 +356,8 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
+const fns = firebase.app().functions("europe-west1");
 
 /* ======================= SEED DATA (din Excel) ======================= */
 const SEED_SOFERI = [{"tura": "379", "nume": "Pop Marcel", "locatie": "Ruhstorf"}, {"tura": "380", "nume": "Stan Ionel", "locatie": "Ruhstorf"}, {"tura": "381", "nume": "Bitiusca Gabriel", "locatie": "Ruhstorf"}, {"tura": "392", "nume": "Ciobotaru Adrian", "locatie": "Ruhstorf"}, {"tura": "395", "nume": "Farkas Rudolf", "locatie": "Ruhstorf"}, {"tura": "397", "nume": "Maricosul Adelin", "locatie": "Ruhstorf"}, {"tura": "405", "nume": "Zestrea Mihail", "locatie": "Ruhstorf"}, {"tura": "409", "nume": "Tuca Valentin", "locatie": "Ruhstorf"}, {"tura": "410", "nume": "Ciobotaru Iulian", "locatie": "Ruhstorf"}, {"tura": "412", "nume": "Moise Alexandru", "locatie": "Ruhstorf"}, {"tura": "422", "nume": "Bisoc Ionut", "locatie": "Ruhstorf"}, {"tura": "428", "nume": "Birliba Mihaela", "locatie": "Ruhstorf"}, {"tura": "441", "nume": "Stinga Valeriu", "locatie": "Ruhstorf"}, {"tura": "458", "nume": "Ciobotaru Larisa", "locatie": "Ruhstorf"}, {"tura": "494", "nume": "Ferent Simon", "locatie": "Ruhstorf"}, {"tura": "496", "nume": "Iacob Mihai", "locatie": "Ruhstorf"}, {"tura": "500", "nume": "Mereacre Mihail", "locatie": "Ruhstorf"}, {"tura": "502", "nume": "Serban Florin", "locatie": "Ruhstorf"}, {"tura": "505", "nume": "Buciu Petre", "locatie": "Ruhstorf"}, {"tura": "509", "nume": "Dutescu Daniel", "locatie": "Ruhstorf"}, {"tura": "510", "nume": "Feraru Razvan", "locatie": "Ruhstorf"}, {"tura": "513", "nume": "Mihai Adrian", "locatie": "Ruhstorf"}, {"tura": "522", "nume": "Dobinda Dumitru", "locatie": "Ruhstorf"}, {"tura": "529", "nume": "Crainic Adrian", "locatie": "Ruhstorf"}, {"tura": "531", "nume": "Rudareanu Vladut", "locatie": "Ruhstorf"}, {"tura": "532", "nume": "Maies Antonio", "locatie": "Ruhstorf"}, {"tura": "534", "nume": "Macarie Paul", "locatie": "Ruhstorf"}, {"tura": "536", "nume": "Musteata Ioan", "locatie": "Ruhstorf"}, {"tura": "537", "nume": "Sparios Eduard", "locatie": "Ruhstorf"}, {"tura": "538", "nume": "Raghinaru Marian", "locatie": "Ruhstorf"}, {"tura": "540", "nume": "Stanciu Dumitru", "locatie": "Ruhstorf"}, {"tura": "541", "nume": "Plesca Mihai", "locatie": "Ruhstorf"}, {"tura": "542", "nume": "Cazan Ionut", "locatie": "Ruhstorf"}, {"tura": "543", "nume": "Bejenaru Ioan", "locatie": "Ruhstorf"}, {"tura": "544", "nume": "Badea Madalin", "locatie": "Ruhstorf"}, {"tura": "545", "nume": "Bainoczi Razvan", "locatie": "Ruhstorf"}, {"tura": "547", "nume": "Margau Rafael", "locatie": "Ruhstorf"}, {"tura": "548", "nume": "Burlacu Andrei", "locatie": "Ruhstorf"}];
@@ -372,31 +377,42 @@ let soferiFilter = "toate";
 let unsub = [];
 
 /* ======================= AUTH ======================= */
-// Admin (Paul) — PIN fix, nu e stocat în Firestore.
-// Operator (Raluca) — își creează singură PIN-ul la prima folosire; se salvează în Firestore (config/operatorAuth)
-// și rămâne valabil oricând deschide aplicația (nu doar 24h ca sesiunea locală).
-const OPERATOR_DOC = () => db.collection("config").doc("operatorAuth");
-let currentRole = null; // 'admin' | 'operator'
+// Profiluri: Raluca (Ruhstorf), Mădălina (Eiselfing), Admin. PIN de 6 cifre, verificat pe server.
+// Prima folosire / după „Resetează PIN” de la admin: operatorul își alege singur PIN-ul.
+const PROFILES = {
+  raluca:   { name: "Raluca",   loc: "Ruhstorf" },
+  madalina: { name: "Mădălina", loc: "Eiselfing" }
+};
+const SESSION_MS = 24*3600*1000;
+let currentRole = null;   // 'admin' | 'operator'
+let currentLoc = null;    // 'Ruhstorf' | 'Eiselfing' | null (admin vede tot)
+let currentName = "";
+let appStarted = false;
+
+async function callFn(name, data){
+  try{ const r = await fns.httpsCallable(name)(data); return r.data; }
+  catch(e){ throw new Error(e && e.message ? e.message : "Eroare de rețea"); }
+}
 
 function checkSavedAuth(){
-  const s = localStorage.getItem("inventarAuth");
-  if(s){
-    try{
-      const d = JSON.parse(s);
-      if(d.exp > Date.now()){ currentRole = d.role; startApp(); return; }
-    }catch(e){}
-  }
   document.getElementById("login-screen").style.display = "flex";
   renderLoginLoading();
-  OPERATOR_DOC().get().then(doc=>{
-    if(doc.exists && doc.data().pin){
-      renderLoginOperator(doc.data().nume || "Raluca");
-    }else{
-      renderLoginCreate();
+  let first = true;
+  auth.onAuthStateChanged(async user=>{
+    if(!first) return; first = false;
+    if(user){
+      try{
+        const t = await user.getIdTokenResult();
+        const at = parseInt(localStorage.getItem("inventarLoginAt")||"0",10);
+        const fresh = at && (Date.now()-at) < SESSION_MS;
+        if(fresh && t.claims.role === "admin"){ currentRole="admin"; currentLoc=null; currentName="Admin"; startApp(); return; }
+        if(fresh && t.claims.role === "operator" && PROFILES[t.claims.opId]){
+          currentRole="operator"; currentLoc=t.claims.loc; currentName=t.claims.name; startApp(); return;
+        }
+      }catch(e){ console.error(e); }
+      try{ await auth.signOut(); }catch(e){}
     }
-  }).catch(err=>{
-    console.error(err);
-    renderLoginOperator("Raluca"); // fallback dacă nu poate citi (nu blocăm accesul admin)
+    renderLoginPicker();
   });
 }
 
@@ -404,94 +420,106 @@ function renderLoginLoading(){
   document.getElementById("login-content").innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:13px">Se încarcă...</div>`;
 }
 
-function renderLoginCreate(){
+function renderLoginPicker(){
   document.getElementById("login-content").innerHTML = `
-    <div style="font-size:13px;color:var(--text);margin-bottom:14px;text-align:left">
-      Bine ai venit! Se pare că e prima dată — creează-ți un PIN cu care vei intra data viitoare.
-    </div>
-    <div class="form-group"><label>Numele tău</label><input id="create-nume" value="Raluca" placeholder="Nume"></div>
-    <div class="form-group"><label>PIN nou</label><input type="password" id="create-pin" maxlength="10" inputmode="numeric" placeholder="alege un PIN"></div>
-    <div class="form-group"><label>Confirmă PIN</label><input type="password" id="create-pin2" maxlength="10" inputmode="numeric" placeholder="scrie-l din nou"></div>
-    <button class="btn btn-primary btn-block" onclick="createOperatorPin()">Creează cont</button>
-    <div class="login-err" id="login-err"></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Cine ești?</div>
+    <button class="btn btn-block" style="margin-bottom:8px" onclick="selectProfile('raluca')">👤 Raluca · Ruhstorf</button>
+    <button class="btn btn-block" style="margin-bottom:8px" onclick="selectProfile('madalina')">👤 Mădălina · Eiselfing</button>
     <div class="login-switch">Ești admin? <a onclick="renderLoginAdmin()">Intră cu PIN admin</a></div>
   `;
 }
-async function createOperatorPin(){
-  const nume = document.getElementById("create-nume").value.trim() || "Raluca";
+
+async function selectProfile(user){
+  renderLoginLoading();
+  try{
+    const r = await callFn("inventarPinState", {user});
+    if(r.state === "set") renderLoginOperator(user);
+    else if(r.state === "setup") renderLoginCreate(user);
+    else renderLoginBlocked(user);
+  }catch(e){ renderLoginPicker(); showLoginErr(e.message); }
+}
+function showLoginErr(msg){
+  const el = document.getElementById("login-err");
+  if(el) el.textContent = msg; else document.getElementById("login-content").insertAdjacentHTML("beforeend", `<div class="login-err" id="login-err">${esc(msg)}</div>`);
+}
+function renderLoginBlocked(user){
+  document.getElementById("login-content").innerHTML = `
+    <div style="font-size:13px;color:var(--text);margin:8px 0 14px;text-align:left">Contul ${esc(PROFILES[user].name)} nu este activat. Cere administratorului să apese „Resetează PIN operator”, apoi revino aici ca să-ți alegi PIN-ul.</div>
+    <div class="login-switch"><a onclick="renderLoginPicker()">← Înapoi</a></div>`;
+}
+
+function renderLoginCreate(user){
+  document.getElementById("login-content").innerHTML = `
+    <div style="font-size:13px;color:var(--text);margin-bottom:14px;text-align:left">
+      ${esc(PROFILES[user].name)}, alege un PIN de 6 cifre cu care vei intra data viitoare (fără șiruri precum 123456 sau 111111).
+    </div>
+    <div class="form-group"><label>PIN nou</label><input type="password" id="create-pin" maxlength="6" inputmode="numeric" autocomplete="new-password" placeholder="6 cifre"></div>
+    <div class="form-group"><label>Confirmă PIN</label><input type="password" id="create-pin2" maxlength="6" inputmode="numeric" autocomplete="new-password" placeholder="scrie-l din nou"></div>
+    <button class="btn btn-primary btn-block" onclick="createOperatorPin('${user}')">Salvează PIN</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-switch"><a onclick="renderLoginPicker()">← Înapoi</a></div>
+  `;
+}
+async function createOperatorPin(user){
   const pin = document.getElementById("create-pin").value.trim();
   const pin2 = document.getElementById("create-pin2").value.trim();
   const err = document.getElementById("login-err");
-  if(pin.length < 4){ err.textContent = "PIN-ul trebuie să aibă cel puțin 4 caractere"; return; }
+  if(!/^\d{6}$/.test(pin)){ err.textContent = "PIN-ul trebuie să aibă exact 6 cifre"; return; }
   if(pin !== pin2){ err.textContent = "PIN-urile nu coincid"; return; }
   try{
-    await OPERATOR_DOC().set({pin, nume, createdAt: Date.now()});
-    currentRole = "operator";
-    localStorage.setItem("inventarAuth", JSON.stringify({exp: Date.now() + 24*3600*1000, role:"operator", nume}));
-    startApp();
-  }catch(e){
-    console.error(e);
-    err.textContent = "Eroare la salvare — verifică Firestore Rules";
-  }
+    const r = await callFn("inventarSetPin", {user, newPin: pin});
+    await finishLogin(r.token);
+  }catch(e){ err.textContent = e.message; }
 }
 
-function renderLoginOperator(nume){
+function renderLoginOperator(user){
   document.getElementById("login-content").innerHTML = `
-    <div class="form-group"><label>PIN (${esc(nume)})</label><input type="password" id="pin-input" maxlength="10" placeholder="••••••" inputmode="numeric"></div>
-    <button class="btn btn-primary btn-block" onclick="tryLoginOperator('${esc(nume)}')">Intră</button>
+    <div class="form-group"><label>PIN (${esc(PROFILES[user].name)})</label><input type="password" id="pin-input" maxlength="6" placeholder="••••••" inputmode="numeric" autocomplete="current-password"></div>
+    <button class="btn btn-primary btn-block" onclick="tryLogin('${user}')">Intră</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-switch">Ești admin? <a onclick="renderLoginAdmin()">Intră cu PIN admin</a></div>
+    <div class="login-switch"><a onclick="renderLoginPicker()">← Înapoi</a></div>
   `;
   const inp = document.getElementById("pin-input");
   inp.focus();
-  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLoginOperator(nume); });
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLogin(user); });
 }
-async function tryLoginOperator(nume){
-  const pin = document.getElementById("pin-input").value.trim();
-  try{
-    const doc = await OPERATOR_DOC().get();
-    if(doc.exists && doc.data().pin === pin){
-      currentRole = "operator";
-      localStorage.setItem("inventarAuth", JSON.stringify({exp: Date.now() + 24*3600*1000, role:"operator", nume: doc.data().nume || nume}));
-      startApp();
-    }else{
-      document.getElementById("login-err").textContent = "PIN greșit";
-      document.getElementById("pin-input").value = "";
-    }
-  }catch(e){
-    console.error(e);
-    document.getElementById("login-err").textContent = "Eroare la verificare";
-  }
-}
-
 function renderLoginAdmin(){
   document.getElementById("login-content").innerHTML = `
-    <div class="form-group"><label>PIN admin</label><input type="password" id="pin-input" maxlength="10" placeholder="••••••" inputmode="numeric"></div>
-    <button class="btn btn-primary btn-block" onclick="tryLoginAdmin()">Intră</button>
+    <div class="form-group"><label>PIN admin</label><input type="password" id="pin-input" maxlength="10" placeholder="••••••" inputmode="numeric" autocomplete="current-password"></div>
+    <button class="btn btn-primary btn-block" onclick="tryLogin('admin')">Intră</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-switch"><a onclick="checkSavedAuth()">← Înapoi</a></div>
+    <div class="login-switch"><a onclick="renderLoginPicker()">← Înapoi</a></div>
   `;
   const inp = document.getElementById("pin-input");
   inp.focus();
-  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLoginAdmin(); });
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLogin('admin'); });
 }
-function tryLoginAdmin(){
-  const pin = document.getElementById("pin-input").value.trim();
-  if(pin === ADMIN_PIN){
-    currentRole = "admin";
-    localStorage.setItem("inventarAuth", JSON.stringify({exp: Date.now() + 24*3600*1000, role:"admin"}));
-    startApp();
-  }else{
-    document.getElementById("login-err").textContent = "PIN greșit";
-    document.getElementById("pin-input").value = "";
-  }
+async function tryLogin(user){
+  const inp = document.getElementById("pin-input");
+  const pin = inp.value.trim();
+  const err = document.getElementById("login-err");
+  if(!pin){ err.textContent = "Introdu PIN-ul"; return; }
+  err.textContent = "";
+  try{
+    const r = await callFn("inventarLogin", {user, pin});
+    await finishLogin(r.token);
+  }catch(e){ err.textContent = e.message; inp.value = ""; }
+}
+async function finishLogin(token){
+  await auth.signInWithCustomToken(token);
+  localStorage.setItem("inventarLoginAt", String(Date.now()));
+  const t = await auth.currentUser.getIdTokenResult();
+  if(t.claims.role === "admin"){ currentRole="admin"; currentLoc=null; currentName="Admin"; }
+  else { currentRole="operator"; currentLoc=t.claims.loc; currentName=t.claims.name; }
+  startApp();
 }
 
-function logout(){
-  localStorage.removeItem("inventarAuth");
+async function logout(){
+  try{ localStorage.removeItem("inventarLoginAt"); await auth.signOut(); }catch(e){}
   location.reload();
 }
 function startApp(){
+  if(appStarted) return; appStarted = true;
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("app").style.display = "flex";
   const badge = document.getElementById("role-badge");
@@ -499,37 +527,118 @@ function startApp(){
     badge.textContent = "👑 Admin";
     badge.classList.add("is-admin");
     document.getElementById("reset-pin-btn").style.display = "inline-block";
+    document.getElementById("match-btn").style.display = "inline-block";
   }else{
-    const s = JSON.parse(localStorage.getItem("inventarAuth")||"{}");
-    badge.textContent = "👤 " + (s.nume || "Raluca");
+    badge.textContent = "👤 " + currentName + " · " + currentLoc;
+    // operatorul vede doar locația lui: ascundem filtrele de locație
+    document.querySelectorAll("#page-soferi .filter-chip").forEach(c=>{ c.style.display = "none"; });
   }
   attachListeners();
 }
 async function resetOperatorPin(){
-  if(!confirm("Ștergi PIN-ul Ralucăi? Data viitoare când deschide aplicația i se va cere să-și creeze un PIN nou.")) return;
+  const w = prompt("Cui resetezi PIN-ul? Scrie: raluca sau madalina");
+  const user = (w||"").trim().toLowerCase().replace("ă","a");
+  if(!PROFILES[user]) { if(w) showToast("Nume necunoscut"); return; }
+  if(!confirm("Resetezi PIN-ul pentru "+PROFILES[user].name+"? Data viitoare își va alege un PIN nou.")) return;
   try{
-    await OPERATOR_DOC().delete();
-    showToast("PIN resetat");
+    await callFn("inventarAdminResetPin", {user});
+    showToast("PIN resetat — "+PROFILES[user].name+" își alege unul nou");
   }catch(e){ console.error(e); showToast("Eroare la resetare"); }
+}
+
+/* ===== Locație: operatorul vede doar echipamentele/șoferii locației lui ===== */
+const locOf = x => (x && x.locatie) || "Ruhstorf";           // echipamentele vechi (fără câmp) = Ruhstorf
+const inScope = x => currentRole === "admin" || locOf(x) === currentLoc;
+
+/* ======================= POTRIVIRE ȘOFERI (Angajați ↔ Inventar) — doar admin ======================= */
+const normName = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").split(/\s+/).filter(Boolean).sort().join(" ");
+async function openMatchModal(){
+  if(currentRole!=="admin") return;
+  openModal('<h3>🔗 Potrivire șoferi <span class="x" onclick="closeModal()">&times;</span></h3><div style="color:var(--muted);font-size:13px">Se încarcă...</div>');
+  let list=[], auto=false;
+  try{
+    const [a,c]=await Promise.all([db.collection("angajati_sync").doc("list").get(), db.collection("meta").doc("sync").get()]);
+    list = a.exists ? (a.data().items||[]) : [];
+    auto = c.exists && c.data().autoCreate===true;
+  }catch(e){ console.error(e); }
+  if(!list.length){ openModal('<h3>🔗 Potrivire șoferi <span class="x" onclick="closeModal()">&times;</span></h3><div style="font-size:13px">Încă nu a sosit lista din Angajați. Salvează un angajat în aplicația Angajați (sau rulează sincronizarea) și revino.</div>'); return; }
+  window._matchList = list;
+  const linked = new Set(soferi.filter(s=>s.angajatId).map(s=>String(s.angajatId)));
+  const byNorm = new Map(list.map(x=>[normName(x.nume), x]));
+  const unlinked = soferi.filter(s=>!s.angajatId);
+  const missing = list.filter(x=>!linked.has(String(x.docId)) && !unlinked.some(s=>normName(s.nume)===normName(x.nume)));
+  const opts = sel => '<option value="">— nepotrivit —</option>'+list.map(x=>'<option value="'+esc(x.docId)+'"'+(sel===x.docId?' selected':'')+'>'+esc(x.nume)+' · '+esc(x.locatie)+'</option>').join("");
+  const rows = unlinked.map(s=>{ const g=byNorm.get(normName(s.nume)); return '<tr><td style="padding:5px 8px">'+esc(s.nume)+'<div style="font-size:11px;color:var(--muted)">Tură '+esc(s.tura||"—")+' · '+esc(s.locatie||"")+'</div></td><td><select id="mt-'+s.id+'" style="max-width:260px">'+opts(g?g.docId:"")+'</select></td></tr>'; }).join("");
+  openModal('<h3>🔗 Potrivire șoferi <span class="x" onclick="closeModal()">&times;</span></h3>'+
+    '<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Șoferii introduși de tine manual sunt legați de persoanele din Angajați. Nimic nu se șterge. Numele identice (în orice ordine/fără diacritice) sunt deja preselectate.</div>'+
+    (unlinked.length ? '<div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px"><table style="width:100%;font-size:13px">'+rows+'</table></div><div class="modal-actions"><button class="btn btn-primary" onclick="saveMatches()">Salvează potrivirile</button></div>' : '<div style="font-size:13px;margin-bottom:10px">✅ Toți șoferii din Inventar sunt legați de Angajați.</div>')+
+    '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:13px"><b>'+missing.length+'</b> persoane din Angajați (șoferi pachete) nu au încă șofer în Inventar'+(missing.length?': <span style="color:var(--muted)">'+esc(missing.slice(0,8).map(x=>x.nume).join(", "))+(missing.length>8?" …":"")+'</span> <div style="margin-top:8px"><button class="btn" onclick="addMissingDrivers()">Adaugă lipsă în Inventar</button></div>':'')+
+    '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><b style="font-size:13px">Unește doi șoferi (dublură)</b><div style="font-size:12px;color:var(--muted);margin:4px 0 8px">Dublura se șterge, iar cel păstrat primește tura și legătura cu Angajații dacă nu le are deja.</div>'+
+      '<select id="mg-from" style="max-width:100%;margin-bottom:6px"><option value="">— dublura (se șterge) —</option>'+soferi.slice().sort((a,b)=>(a.nume||"").localeCompare(b.nume||"")).map(x=>'<option value="'+x.id+'">'+esc(x.nume)+' · tură '+esc(x.tura||"—")+' · '+esc(x.locatie||"")+'</option>').join("")+'</select><br>'+
+      '<select id="mg-to" style="max-width:100%;margin-bottom:6px"><option value="">— se păstrează —</option>'+soferi.slice().sort((a,b)=>(a.nume||"").localeCompare(b.nume||"")).map(x=>'<option value="'+x.id+'">'+esc(x.nume)+' · tură '+esc(x.tura||"—")+' · '+esc(x.locatie||"")+'</option>').join("")+'</select><br>'+
+      '<button class="btn" onclick="mergeDrivers()">Unește</button></div>'+
+    '<div style="margin-top:10px"><label style="cursor:pointer"><input type="checkbox" id="mt-auto" '+(auto?'checked':'')+' onchange="setAutoCreate(this.checked)"> Adaugă automat persoanele noi din Angajați (recomandat doar după ce ai făcut potrivirile)</label></div></div>');
+}
+async function saveMatches(){
+  const list=window._matchList||[]; let n=0;
+  try{
+    for(const s of soferi.filter(x=>!x.angajatId)){
+      const el=document.getElementById("mt-"+s.id); if(!el||!el.value) continue;
+      const a=list.find(x=>x.docId===el.value); if(!a) continue;
+      await db.collection("soferi").doc(s.id).update({angajatId:a.docId, locatie:a.locatie, syncedAt:Date.now()}); n++;
+    }
+    showToast("Potriviri salvate: "+n); openMatchModal();
+  }catch(e){ console.error(e); showToast("Eroare la salvare"); }
+}
+async function addMissingDrivers(){
+  const list=window._matchList||[];
+  const linked=new Set(soferi.filter(s=>s.angajatId).map(s=>String(s.angajatId)));
+  const unl=soferi.filter(s=>!s.angajatId).map(s=>normName(s.nume));
+  const miss=list.filter(x=>!linked.has(String(x.docId)) && !unl.includes(normName(x.nume)));
+  if(!miss.length) return;
+  if(!confirm("Adaugi "+miss.length+" șoferi noi în Inventar?")) return;
+  try{
+    for(const x of miss) await db.collection("soferi").add({tura:"", nume:x.nume, locatie:x.locatie, activ:true, angajatId:x.docId, createdAt:Date.now(), syncedAt:Date.now(), dinSync:true});
+    showToast("Adăugați: "+miss.length); openMatchModal();
+  }catch(e){ console.error(e); showToast("Eroare"); }
+}
+async function mergeDrivers(){
+  const a=soferi.find(x=>x.id===document.getElementById("mg-from").value), b=soferi.find(x=>x.id===document.getElementById("mg-to").value);
+  if(!a||!b||a.id===b.id){ showToast("Alege doi șoferi diferiți"); return; }
+  let warn="";
+  if(a.tura && b.tura && String(a.tura).trim()!==String(b.tura).trim()) warn="\n\nATENȚIE: au ture diferite ("+a.tura+" și "+b.tura+"). Echipamentele de la tura "+a.tura+" nu vor mai avea șofer afișat până nu le muți pe tura "+b.tura+".";
+  if(!confirm("Unești „"+a.nume+"” în „"+b.nume+"”? Se șterge „"+a.nume+"”."+warn)) return;
+  const patch={};
+  if(!b.tura && a.tura) patch.tura=a.tura;
+  if(!b.angajatId && a.angajatId) patch.angajatId=a.angajatId;
+  try{
+    if(Object.keys(patch).length) await db.collection("soferi").doc(b.id).update(patch);
+    await db.collection("soferi").doc(a.id).delete();
+    showToast("Uniți"); openMatchModal();
+  }catch(e){ console.error(e); showToast("Eroare la unire"); }
+}
+async function setAutoCreate(on){
+  try{ await db.collection("meta").doc("sync").set({autoCreate:!!on}); showToast(on?"Adăugare automată activă":"Adăugare automată oprită"); }
+  catch(e){ console.error(e); showToast("Eroare"); }
 }
 
 /* ======================= FIRESTORE LISTENERS ======================= */
 function attachListeners(){
   unsub.push(db.collection("soferi").onSnapshot(snap=>{
-    soferi = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    soferi = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(s=>s.activ!==false && inScope(s));
     soferi.sort((a,b)=> (parseInt(a.tura)||99999) - (parseInt(b.tura)||99999));
     renderAll();
   }, err=>console.error(err)));
   unsub.push(db.collection("scannere").onSnapshot(snap=>{
-    scannere = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    scannere = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(inScope);
     renderAll();
   }, err=>console.error(err)));
   unsub.push(db.collection("incarcatoare").onSnapshot(snap=>{
-    incarcatoare = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    incarcatoare = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(inScope);
     renderAll();
   }, err=>console.error(err)));
   unsub.push(db.collection("imprimante").onSnapshot(snap=>{
-    imprimante = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    imprimante = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(inScope);
     renderAll();
   }, err=>console.error(err)));
 }
@@ -538,7 +647,7 @@ function attachListeners(){
 async function checkImportNeeded(){
   // dă un tick ca listenerele să apuce să încarce
   setTimeout(()=>{
-    if(soferi.length===0 && scannere.length===0 && incarcatoare.length===0 && imprimante.length===0){
+    if(currentRole==='admin' && soferi.length===0 && scannere.length===0 && incarcatoare.length===0 && imprimante.length===0){
       const total = SEED_SOFERI.length + SEED_SCANNERE.length + SEED_INCARCATOARE.length + SEED_IMPRIMANTE.length;
       document.getElementById("import-count").textContent = total;
       document.getElementById("import-bar").classList.add("show");
@@ -772,10 +881,10 @@ function openSoferModal(data){
     <h3>${editId?"Editează șofer":"Șofer nou"} <span class="x" onclick="closeModal()">&times;</span></h3>
     <div class="form-group"><label>Număr tură</label><input id="sf-tura" value="${data?esc(data.tura):""}" placeholder="ex: 538"></div>
     <div class="form-group"><label>Nume și prenume</label><input id="sf-nume" value="${data?esc(data.nume):""}" placeholder="Nume Prenume"></div>
-    <div class="form-group"><label>Locație</label>
+    <div class="form-group" ${currentRole!=='admin'?'style="display:none"':''}><label>Locație</label>
       <select id="sf-loc">
-        <option value="Ruhstorf" ${(!data||data.locatie==='Ruhstorf')?'selected':''}>Ruhstorf</option>
-        <option value="Eiselfing" ${data?.locatie==='Eiselfing'?'selected':''}>Eiselfing</option>
+        <option value="Ruhstorf" ${((!data&&currentLoc!=='Eiselfing')||data?.locatie==='Ruhstorf')?'selected':''}>Ruhstorf</option>
+        <option value="Eiselfing" ${((!data&&currentLoc==='Eiselfing')||data?.locatie==='Eiselfing')?'selected':''}>Eiselfing</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -787,7 +896,7 @@ function openSoferModal(data){
 async function saveSofer(id){
   const tura = document.getElementById("sf-tura").value.trim();
   const nume = document.getElementById("sf-nume").value.trim();
-  const locatie = document.getElementById("sf-loc").value;
+  const locatie = currentRole==="admin" ? document.getElementById("sf-loc").value : currentLoc;
   if(!nume){ showToast("Numele e obligatoriu"); return; }
   try{
     if(id) await db.collection("soferi").doc(id).update({tura, nume, locatie});
@@ -854,6 +963,7 @@ function openEquipModal(type, data){
       ${SPECIAL_STATUSES.map(s=>`<button type="button" onclick="document.getElementById('eq-tura').value='${s}'">${s}</button>`).join("")}
     </div>
     ${type==='imprimante'?`<div class="form-group" style="margin-top:13px"><label>Serie tip (A/B)</label><input id="eq-serieTip" value="${data?esc(data.serieTip||''):''}" placeholder="A sau B"></div>`:''}
+    ${currentRole==='admin'?`<div class="form-group" style="margin-top:13px"><label>Locație</label><select id="eq-loc"><option value="Ruhstorf" ${locOf(data)==='Ruhstorf'?'selected':''}>Ruhstorf</option><option value="Eiselfing" ${locOf(data)==='Eiselfing'?'selected':''}>Eiselfing</option></select></div>`:''}
     <div class="form-group" style="margin-top:13px"><label>Notă</label><input id="eq-note" value="${data?esc(data.note||''):''}" placeholder="opțional"></div>
     <div class="modal-actions">
       ${editId?'<button class="btn btn-danger" onclick="deleteEquip(\''+type+'\',\''+editId+'\')">Șterge</button>':''}
@@ -867,7 +977,7 @@ async function saveEquip(type, id){
   const note = document.getElementById("eq-note").value.trim();
   const serieTip = document.getElementById("eq-serieTip") ? document.getElementById("eq-serieTip").value.trim() : undefined;
   if(!serial){ showToast("Seria e obligatorie"); return; }
-  const payload = {serial, tura, note, updatedAt: Date.now()};
+  const payload = {serial, tura, note, updatedAt: Date.now(), locatie: currentRole==='admin' ? (document.getElementById('eq-loc')||{}).value || 'Ruhstorf' : currentLoc};
   if(serieTip!==undefined) payload.serieTip = serieTip;
   try{
     if(id) await db.collection(type).doc(id).update(payload);
