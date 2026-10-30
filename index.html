@@ -253,6 +253,7 @@ main{flex:1; padding:20px; max-width:1180px; width:100%; margin:0 auto;}
         <span class="role-badge" id="role-badge"></span>
         <button class="btn btn-ghost" id="reset-pin-btn" style="display:none" onclick="resetOperatorPin()">Resetează PIN operator</button>
         <button class="btn btn-ghost" id="match-btn" style="display:none" onclick="openMatchModal()">🔗 Potrivire șoferi</button>
+        <button class="btn btn-ghost" id="bk-btn" style="display:none" onclick="openBackupManager()">💾 Backup</button>
         <button class="btn btn-ghost" onclick="logout()">Ieșire</button>
       </div>
     </div>
@@ -363,10 +364,10 @@ const fns = firebase.app().functions("europe-west1");
 /* ======================= SEED DATA (din Excel) ======================= */
 const SEED_SOFERI = [{"tura": "379", "nume": "Pop Marcel", "locatie": "Ruhstorf"}, {"tura": "380", "nume": "Stan Ionel", "locatie": "Ruhstorf"}, {"tura": "381", "nume": "Bitiusca Gabriel", "locatie": "Ruhstorf"}, {"tura": "392", "nume": "Ciobotaru Adrian", "locatie": "Ruhstorf"}, {"tura": "395", "nume": "Farkas Rudolf", "locatie": "Ruhstorf"}, {"tura": "397", "nume": "Maricosul Adelin", "locatie": "Ruhstorf"}, {"tura": "405", "nume": "Zestrea Mihail", "locatie": "Ruhstorf"}, {"tura": "409", "nume": "Tuca Valentin", "locatie": "Ruhstorf"}, {"tura": "410", "nume": "Ciobotaru Iulian", "locatie": "Ruhstorf"}, {"tura": "412", "nume": "Moise Alexandru", "locatie": "Ruhstorf"}, {"tura": "422", "nume": "Bisoc Ionut", "locatie": "Ruhstorf"}, {"tura": "428", "nume": "Birliba Mihaela", "locatie": "Ruhstorf"}, {"tura": "441", "nume": "Stinga Valeriu", "locatie": "Ruhstorf"}, {"tura": "458", "nume": "Ciobotaru Larisa", "locatie": "Ruhstorf"}, {"tura": "494", "nume": "Ferent Simon", "locatie": "Ruhstorf"}, {"tura": "496", "nume": "Iacob Mihai", "locatie": "Ruhstorf"}, {"tura": "500", "nume": "Mereacre Mihail", "locatie": "Ruhstorf"}, {"tura": "502", "nume": "Serban Florin", "locatie": "Ruhstorf"}, {"tura": "505", "nume": "Buciu Petre", "locatie": "Ruhstorf"}, {"tura": "509", "nume": "Dutescu Daniel", "locatie": "Ruhstorf"}, {"tura": "510", "nume": "Feraru Razvan", "locatie": "Ruhstorf"}, {"tura": "513", "nume": "Mihai Adrian", "locatie": "Ruhstorf"}, {"tura": "522", "nume": "Dobinda Dumitru", "locatie": "Ruhstorf"}, {"tura": "529", "nume": "Crainic Adrian", "locatie": "Ruhstorf"}, {"tura": "531", "nume": "Rudareanu Vladut", "locatie": "Ruhstorf"}, {"tura": "532", "nume": "Maies Antonio", "locatie": "Ruhstorf"}, {"tura": "534", "nume": "Macarie Paul", "locatie": "Ruhstorf"}, {"tura": "536", "nume": "Musteata Ioan", "locatie": "Ruhstorf"}, {"tura": "537", "nume": "Sparios Eduard", "locatie": "Ruhstorf"}, {"tura": "538", "nume": "Raghinaru Marian", "locatie": "Ruhstorf"}, {"tura": "540", "nume": "Stanciu Dumitru", "locatie": "Ruhstorf"}, {"tura": "541", "nume": "Plesca Mihai", "locatie": "Ruhstorf"}, {"tura": "542", "nume": "Cazan Ionut", "locatie": "Ruhstorf"}, {"tura": "543", "nume": "Bejenaru Ioan", "locatie": "Ruhstorf"}, {"tura": "544", "nume": "Badea Madalin", "locatie": "Ruhstorf"}, {"tura": "545", "nume": "Bainoczi Razvan", "locatie": "Ruhstorf"}, {"tura": "547", "nume": "Margau Rafael", "locatie": "Ruhstorf"}, {"tura": "548", "nume": "Burlacu Andrei", "locatie": "Ruhstorf"}];
 const SEED_SCANNERE = [{"serial": "01882601006404", "tura": "L4", "note": ""}, {"serial": "01882601006385", "tura": "551", "note": ""}, {"serial": "01882601006490", "tura": "522", "note": ""}, {"serial": "01882601006466", "tura": "AFNUS 2", "note": ""}, {"serial": "01882601006386", "tura": "549", "note": ""}, {"serial": "01882601006433", "tura": "513", "note": ""}, {"serial": "01882601006461", "tura": "496", "note": ""}, {"serial": "01882601006492", "tura": "L2", "note": ""}, {"serial": "01882601006398", "tura": "502", "note": ""}, {"serial": "01882601006397", "tura": "531", "note": ""}, {"serial": "01882601006367", "tura": "505", "note": ""}, {"serial": "01882601006366", "tura": "422", "note": ""}, {"serial": "01882601006373", "tura": "542", "note": ""}, {"serial": "01882601006374", "tura": "409", "note": ""}, {"serial": "01882601006382", "tura": "545", "note": ""}, {"serial": "01882601006381", "tura": "380", "note": ""}, {"serial": "01882601006396", "tura": "537", "note": ""}, {"serial": "01882601006302", "tura": "547", "note": ""}, {"serial": "01882601006303", "tura": "412", "note": ""}, {"serial": "01882601006307", "tura": "544", "note": ""}, {"serial": "01882601006305", "tura": "441", "note": ""}, {"serial": "01882601006365", "tura": "541", "note": ""}, {"serial": "01882601006339", "tura": "552", "note": ""}, {"serial": "01882601006347", "tura": "405", "note": ""}, {"serial": "01882601006345", "tura": "458", "note": ""}, {"serial": "01882601006309", "tura": "L1", "note": ""}, {"serial": "01882601006436", "tura": "410", "note": ""}, {"serial": "01882601006350", "tura": "397", "note": ""}, {"serial": "01882601006351", "tura": "494", "note": ""}, {"serial": "01882601006392", "tura": "392", "note": ""}, {"serial": "01882601006402", "tura": "L3", "note": ""}, {"serial": "01882601006440", "tura": "509", "note": ""}, {"serial": "01882601006413", "tura": "532", "note": ""}, {"serial": "01882601006407", "tura": "534", "note": ""}, {"serial": "01882601006426", "tura": "428", "note": ""}, {"serial": "01882601006423", "tura": "381", "note": ""}, {"serial": "01882601006427", "tura": "549", "note": ""}, {"serial": "01882601006406", "tura": "543", "note": ""}, {"serial": "01882601006425", "tura": "529", "note": ""}, {"serial": "01882601006410", "tura": "500", "note": ""}, {"serial": "01882601006415", "tura": "LAGER", "note": ""}, {"serial": "01882601006448", "tura": "LAGER", "note": ""}, {"serial": "01882601006361", "tura": "LAGER", "note": ""}, {"serial": "01882601006405", "tura": "548", "note": ""}, {"serial": "01882601006973", "tura": "508", "note": ""}, {"serial": "01882601006995", "tura": "536", "note": ""}, {"serial": "01882601006179", "tura": "553", "note": ""}, {"serial": "01882601006298", "tura": "550", "note": ""}, {"serial": "01882602035501", "tura": "AFNUS 1", "note": ""}, {"serial": "01882605003623", "tura": "510", "note": ""}, {"serial": "01882601006567", "tura": "538", "note": ""}];
-const SEED_INCARCATOARE = [{"serial": "07072550010882", "tura": "538", "note": ""}, {"serial": "07072550010883", "tura": "536", "note": ""}, {"serial": "07072550010884", "tura": "522", "note": ""}, {"serial": "07072550010885", "tura": "545", "note": ""}, {"serial": "07072550010886", "tura": "LAGER", "note": ""}, {"serial": "07072550010887", "tura": "549", "note": ""}, {"serial": "07072550010888", "tura": "513", "note": ""}, {"serial": "07072550010889", "tura": "496", "note": ""}, {"serial": "07072550010890", "tura": "548", "note": ""}, {"serial": "07072550010891", "tura": "502", "note": ""}, {"serial": "07072550010892", "tura": "531", "note": ""}, {"serial": "07072550010893", "tura": "505", "note": ""}, {"serial": "07072550010894", "tura": "LAGER", "note": "TRIMIS INAPOI"}, {"serial": "07072550010895", "tura": "542", "note": ""}, {"serial": "07072550010896", "tura": "409", "note": ""}, {"serial": "07072550010897", "tura": "553", "note": ""}, {"serial": "07072550010898", "tura": "537", "note": ""}, {"serial": "07072550010899", "tura": "547", "note": ""}, {"serial": "07072550010900", "tura": "405", "note": ""}, {"serial": "07072550010901", "tura": "544", "note": ""}, {"serial": "07072550010822", "tura": "441", "note": ""}, {"serial": "07072550010823", "tura": "541", "note": ""}, {"serial": "07072550010824", "tura": "395", "note": ""}, {"serial": "07072550010825", "tura": "SORTAT", "note": ""}, {"serial": "07072550010826", "tura": "458", "note": ""}, {"serial": "07072550010827", "tura": "379", "note": ""}, {"serial": "07072550010828", "tura": "410", "note": ""}, {"serial": "07072550010829", "tura": "397", "note": ""}, {"serial": "07072550010830", "tura": "494", "note": ""}, {"serial": "07072550010831", "tura": "392", "note": ""}, {"serial": "07072550010832", "tura": "510", "note": ""}, {"serial": "07072550010833", "tura": "509", "note": ""}, {"serial": "07072550010834", "tura": "532", "note": ""}, {"serial": "07072550010835", "tura": "534", "note": ""}, {"serial": "07072550010836", "tura": "428", "note": ""}, {"serial": "07072550010837", "tura": "LAGER", "note": "TRIMIS INAPOI"}, {"serial": "07072550010838", "tura": "549", "note": ""}, {"serial": "07072550010839", "tura": "543", "note": ""}, {"serial": "07072550010840", "tura": "LAGER", "note": ""}, {"serial": "07072550010841", "tura": "LAGER", "note": ""}, {"serial": "07072550008700", "tura": "LAGER", "note": ""}, {"serial": "07072550008705", "tura": "552", "note": ""}, {"serial": "07072550008711", "tura": "422", "note": ""}, {"serial": "07072550008713", "tura": "LAGER", "note": ""}, {"serial": "07072550008715", "tura": "380", "note": ""}, {"serial": "07072550008714", "tura": "551", "note": ""}, {"serial": "07072548001966", "tura": "LAGER", "note": ""}, {"serial": "07072548001967", "tura": "LAGER", "note": ""}, {"serial": "07072548001962", "tura": "LAGER", "note": ""}, {"serial": "09442602079960", "tura": "CHARGE", "note": ""}, {"serial": "09442602079959", "tura": "CHARGE", "note": ""}];
+const SEED_INCARCATOARE = [{"serial": "07072550010882", "tura": "538", "note": ""}, {"serial": "07072550010883", "tura": "536", "note": ""}, {"serial": "07072550010884", "tura": "522", "note": ""}, {"serial": "07072550010885", "tura": "545", "note": ""}, {"serial": "07072550010886", "tura": "LAGER", "note": ""}, {"serial": "07072550010887", "tura": "549", "note": ""}, {"serial": "07072550010888", "tura": "513", "note": ""}, {"serial": "07072550010889", "tura": "496", "note": ""}, {"serial": "07072550010890", "tura": "548", "note": ""}, {"serial": "07072550010891", "tura": "502", "note": ""}, {"serial": "07072550010892", "tura": "531", "note": ""}, {"serial": "07072550010893", "tura": "505", "note": ""}, {"serial": "07072550010894", "tura": "LAGER", "note": "TRIMIS INAPOI"}, {"serial": "07072550010895", "tura": "542", "note": ""}, {"serial": "07072550010896", "tura": "409", "note": ""}, {"serial": "07072550010897", "tura": "553", "note": ""}, {"serial": "07072550010898", "tura": "537", "note": ""}, {"serial": "07072550010899", "tura": "547", "note": ""}, {"serial": "07072550010900", "tura": "405", "note": ""}, {"serial": "07072550010901", "tura": "544", "note": ""}, {"serial": "07072550010822", "tura": "441", "note": ""}, {"serial": "07072550010823", "tura": "541", "note": ""}, {"serial": "07072550010824", "tura": "395", "note": ""}, {"serial": "07072550010825", "tura": "LH LG", "note": ""}, {"serial": "07072550010826", "tura": "458", "note": ""}, {"serial": "07072550010827", "tura": "379", "note": ""}, {"serial": "07072550010828", "tura": "410", "note": ""}, {"serial": "07072550010829", "tura": "397", "note": ""}, {"serial": "07072550010830", "tura": "494", "note": ""}, {"serial": "07072550010831", "tura": "392", "note": ""}, {"serial": "07072550010832", "tura": "510", "note": ""}, {"serial": "07072550010833", "tura": "509", "note": ""}, {"serial": "07072550010834", "tura": "532", "note": ""}, {"serial": "07072550010835", "tura": "534", "note": ""}, {"serial": "07072550010836", "tura": "428", "note": ""}, {"serial": "07072550010837", "tura": "LAGER", "note": "TRIMIS INAPOI"}, {"serial": "07072550010838", "tura": "549", "note": ""}, {"serial": "07072550010839", "tura": "543", "note": ""}, {"serial": "07072550010840", "tura": "LAGER", "note": ""}, {"serial": "07072550010841", "tura": "LAGER", "note": ""}, {"serial": "07072550008700", "tura": "LAGER", "note": ""}, {"serial": "07072550008705", "tura": "552", "note": ""}, {"serial": "07072550008711", "tura": "422", "note": ""}, {"serial": "07072550008713", "tura": "LAGER", "note": ""}, {"serial": "07072550008715", "tura": "380", "note": ""}, {"serial": "07072550008714", "tura": "551", "note": ""}, {"serial": "07072548001966", "tura": "LAGER", "note": ""}, {"serial": "07072548001967", "tura": "LAGER", "note": ""}, {"serial": "07072548001962", "tura": "LAGER", "note": ""}, {"serial": "09442602079960", "tura": "CHARGE", "note": ""}, {"serial": "09442602079959", "tura": "CHARGE", "note": ""}];
 const SEED_IMPRIMANTE = [{"serial": "HEREDCVKA25100961", "tura": "379", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100962", "tura": "380", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100963", "tura": "381", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100964", "tura": "392", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100965", "tura": "395", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100966", "tura": "397", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100967", "tura": "399", "serieTip": "A", "note": "LAGER"}, {"serial": "HEREDCVKA25100968", "tura": "405", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100969", "tura": "409", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100970", "tura": "410", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100971", "tura": "412", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100972", "tura": "422", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100973", "tura": "428", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100974", "tura": "441", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100975", "tura": "458", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100976", "tura": "494", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100977", "tura": "496", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100978", "tura": "500", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100979", "tura": "502", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100980", "tura": "505", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100981", "tura": "509", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100982", "tura": "510", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100983", "tura": "513", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100984", "tura": "522", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100985", "tura": "529", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100986", "tura": "531", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100987", "tura": "532", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100988", "tura": "534", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100989", "tura": "536", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100990", "tura": "537", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100991", "tura": "538", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100992", "tura": "540", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100993", "tura": "541", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100994", "tura": "542", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100995", "tura": "543", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25100996", "tura": "544", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107377", "tura": "545", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107378", "tura": "547", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107379", "tura": "548", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKB25100961", "tura": "553", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100962", "tura": "380", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100963", "tura": "381", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100964", "tura": "392", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100965", "tura": "552", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100966", "tura": "397", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100967", "tura": "", "serieTip": "B", "note": "LAGER"}, {"serial": "HEREDCVKB25100968", "tura": "405", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100969", "tura": "409", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100970", "tura": "410", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100971", "tura": "412", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100972", "tura": "422", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100973", "tura": "428", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100974", "tura": "441", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100975", "tura": "458", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100976", "tura": "494", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100977", "tura": "496", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100978", "tura": "500", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100979", "tura": "502", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100980", "tura": "505", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100981", "tura": "509", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100982", "tura": "510", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100983", "tura": "513", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100984", "tura": "522", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100985", "tura": "529", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100986", "tura": "531", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100987", "tura": "532", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100988", "tura": "534", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100989", "tura": "536", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100990", "tura": "537", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100991", "tura": "538", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100992", "tura": "540", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100993", "tura": "541", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100994", "tura": "542", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100995", "tura": "543", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKB25100996", "tura": "544", "serieTip": "B", "note": ""}, {"serial": "HEREDCVKA25107377", "tura": "545", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107378", "tura": "547", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107379", "tura": "548", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107380", "tura": "549", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107389", "tura": "", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107390", "tura": "", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107391", "tura": "", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25107392", "tura": "551", "serieTip": "A", "note": ""}, {"serial": "HEREDCVKA25101398", "tura": "", "serieTip": "A", "note": "AFNUS 1"}, {"serial": "HEREDCVKA25101399", "tura": "", "serieTip": "A", "note": ""}, {"serial": "STDWVKA25090961", "tura": "", "serieTip": "C", "note": "CHARGE"}, {"serial": "STDWVKA25090962", "tura": "", "serieTip": "C", "note": "CHARGE"}];
 
-const SPECIAL_STATUSES = ["LAGER","L1","L2","L3","L4","AFNUS 1","AFNUS 2","SORTAT","CHARGE","TRIMIS INAPOI","DEFECT"];
+const SPECIAL_STATUSES = ["LAGER","L1","L2","L3","L4","AFNUS 1","AFNUS 2","LH LG","CHARGE","TRIMIS INAPOI","DEFECT"];
 const EQUIP_META = {
   scannere: { label: "Scanner", icon: "📷", collection: "scannere" },
   incarcatoare: { label: "Încărcător", icon: "🔌", collection: "incarcatoare" },
@@ -530,6 +531,7 @@ function startApp(){
     badge.classList.add("is-admin");
     document.getElementById("reset-pin-btn").style.display = "inline-block";
     document.getElementById("match-btn").style.display = "inline-block";
+    document.getElementById("bk-btn").style.display = "inline-block";
     document.getElementById("show-hidden-btn").style.display = "inline-block";
   }else{
     badge.textContent = "👤 " + currentName + " · " + currentLoc;
@@ -563,7 +565,10 @@ async function doResetPin(user){
 }
 
 /* ===== Locație: operatorul vede doar echipamentele/șoferii locației lui ===== */
-const locOf = x => (x && x.locatie) || "Ruhstorf";           // echipamentele vechi (fără câmp) = Ruhstorf
+const locOf = x => (x && x.locatie) || "Ruhstorf";
+const LOCS = ["Ruhstorf","Eiselfing"];
+const locColor = loc => loc==="Ruhstorf" ? "var(--ruhstorf)" : "var(--eiselfing)";
+const normSerial = v => String(v==null?"":v).replace(/\s+/g,"").toUpperCase();   // fără spații, fără diferențe mari/mici           // echipamentele vechi (fără câmp) = Ruhstorf
 const inScope = x => currentRole === "admin" || locOf(x) === currentLoc;
 
 /* ======================= POTRIVIRE ȘOFERI (Angajați ↔ Inventar) — doar admin ======================= */
@@ -725,12 +730,154 @@ function switchTab(page){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.page===page));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active", p.id==="page-"+page));
 }
-function closeModal(){ document.getElementById("modal-overlay").classList.remove("show"); }
+function closeModal(){ document.getElementById("modal-overlay").classList.remove("show"); document.getElementById("modal-content").style.maxWidth=""; }
 function openModal(html){
   document.getElementById("modal-content").innerHTML = html;
   document.getElementById("modal-overlay").classList.add("show");
 }
 document.getElementById("modal-overlay").addEventListener("click", e=>{ if(e.target.id==="modal-overlay") closeModal(); });
+
+/* ======================= MANAGER BACKUP (doar admin) ======================= */
+const BK = { runs:[], cfg:null, runId:null, scope:null, picked:new Set(), list:[], plan:null };
+const bkLabels = { auto:"automat", manual:"manual", "pre-restore":"înainte de restaurare" };
+const bkWhen = iso => new Date(iso).toLocaleString("ro-RO",{timeZone:"Europe/Berlin",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+const bkDay = iso => new Date(iso).toLocaleDateString("ro-RO",{timeZone:"Europe/Berlin",weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+const bkTime = iso => new Date(iso).toLocaleTimeString("ro-RO",{timeZone:"Europe/Berlin",hour:"2-digit",minute:"2-digit"});
+function bkShow(html){
+  openModal('<h3>💾 Manager backup <span class="x" onclick="closeModal()">&times;</span></h3>'+html);
+  document.getElementById("modal-content").style.maxWidth = "720px";
+}
+function bkErr(e){ return '<div style="padding:10px;background:var(--danger-dim);border:1px solid var(--danger);border-radius:8px;font-size:13px;color:var(--danger)">'+esc(e && e.message || e)+'</div>'; }
+async function openBackupManager(){
+  if(currentRole!=="admin") return;
+  bkShow('<div style="color:var(--muted);font-size:13px">Se încarcă lista de backup-uri...</div>');
+  try{
+    const r = await callFn("backupList", {});
+    BK.runs = r.runs||[]; BK.cfg = r.config; bkRenderRuns();
+  }catch(e){
+    bkShow(bkErr(e)+'<div style="font-size:12.5px;color:var(--muted);margin-top:10px">Dacă e prima dată: funcțiile de backup trebuie publicate, iar bucket-ul creat (vezi instrucțiunile primite).</div><div class="modal-actions"><button class="btn" onclick="closeModal()">Închide</button></div>');
+  }
+}
+function bkRenderRuns(){
+  const days = new Map();
+  BK.runs.forEach(r=>{ const d=bkDay(r.createdAt); if(!days.has(d)) days.set(d,[]); days.get(d).push(r); });
+  const sumCounts = c => Object.entries(c||{}).map(([k,v])=>v+" "+((BK.cfg.modules.find(m=>m.id===k)||{}).label||k).toLowerCase()).join(" · ");
+  const body = BK.runs.length ? Array.from(days.entries()).map(([d,list])=>
+    '<div style="font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 4px;text-transform:capitalize">'+esc(d)+'</div>'+
+    list.map(r=>'<div style="display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:5px">'+
+      '<div style="min-width:48px;font-weight:700">'+esc(bkTime(r.createdAt))+'</div>'+
+      '<div style="flex:1;min-width:0;font-size:12px;color:var(--muted)"><span style="font-weight:600;color:var(--text)">'+esc(bkLabels[r.label]||r.label)+'</span><br>'+esc(sumCounts(r.counts))+'</div>'+
+      '<button class="btn btn-primary" style="padding:6px 12px" onclick="bkPick(\''+esc(r.id)+'\')">Alege</button></div>').join("")
+  ).join("") : '<div style="font-size:13px;color:var(--muted);padding:12px 0">Încă nu există backup-uri. Apasă „Fă backup acum”.</div>';
+  bkShow('<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Se face automat la 06:00, 14:00 și 22:00. Se păstrează toate copiile 14 zile, apoi câte una pe zi până la '+BK.cfg.retention.dailyDays+' de zile. Înainte de orice restaurare se face automat o copie a stării de acum.</div>'+
+    '<button class="btn btn-primary" id="bk-now" onclick="bkNow()">Fă backup acum</button>'+
+    '<div style="max-height:46vh;overflow-y:auto;margin-top:6px">'+body+'</div>'+
+    '<div class="modal-actions"><button class="btn" onclick="closeModal()">Închide</button></div>');
+}
+async function bkNow(){
+  const b=document.getElementById("bk-now"); if(b){ b.disabled=true; b.textContent="Se face backup..."; }
+  try{ await callFn("backupRunNow",{}); showToast("Backup făcut"); openBackupManager(); }
+  catch(e){ if(b){ b.disabled=false; b.textContent="Fă backup acum"; } showToast("Eroare: "+(e.message||e)); }
+}
+function bkPick(id){
+  BK.runId = id;
+  const r = BK.runs.find(x=>x.id===id);
+  const hasFs = BK.cfg.modules.filter(m=>m.fieldsets.length);
+  bkShow('<div style="font-size:13px;margin-bottom:12px">Backup din <b>'+esc(bkWhen(r.createdAt))+'</b> ('+esc(bkLabels[r.label]||r.label)+'). Ce vrei să restaurezi?</div>'+
+    '<div style="display:grid;gap:8px">'+
+      '<button class="btn" style="text-align:left;padding:12px" onclick="bkStartPerson()"><b>👤 '+esc(BK.cfg.persons[0].label)+'</b><br><span style="font-size:12px;color:var(--muted)">Șoferul, plus scannerul, încărcătorul și imprimanta atribuite lui în acel moment.</span></button>'+
+      '<button class="btn" style="text-align:left;padding:12px" onclick="bkStartModule()"><b>📦 Un modul</b><br><span style="font-size:12px;color:var(--muted)">Șoferi, scannere, încărcătoare sau imprimante: tot modulul, doar anumite elemente sau doar atribuirile.</span></button>'+
+      (hasFs.length?'<button class="btn" style="text-align:left;padding:12px" onclick="bkStartAssign()"><b>🔗 Toate atribuirile</b><br><span style="font-size:12px;color:var(--muted)">Doar cine are ce echipament (scannere, încărcătoare, imprimante), fără alte câmpuri.</span></button>':'')+
+    '</div><div class="modal-actions"><button class="btn" onclick="bkRenderRuns()">← Înapoi</button></div>');
+}
+function bkFilterList(){
+  const q=(document.getElementById("bk-q").value||"").toLowerCase();
+  document.querySelectorAll("#bk-list [data-l]").forEach(el=>{ el.style.display = el.dataset.l.includes(q)?"flex":"none"; });
+}
+function bkListHtml(multi){
+  return '<input id="bk-q" placeholder="Caută..." oninput="bkFilterList()" style="width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);margin-bottom:8px">'+
+    '<div id="bk-list" style="max-height:36vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px">'+
+    BK.list.map((x,i)=>'<label data-l="'+esc((x.label||"").toLowerCase())+'" style="display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px">'+
+      '<input type="'+(multi?'checkbox':'radio')+'" name="bk-sel" value="'+i+'"> <span>'+esc(x.label)+'</span></label>').join("")+'</div>';
+}
+async function bkStartPerson(){
+  bkShow('<div style="color:var(--muted);font-size:13px">Se încarcă șoferii din backup...</div>');
+  try{
+    const r = await callFn("backupItems",{runId:BK.runId, personType:BK.cfg.persons[0].id}); BK.list=r.items;
+    bkShow('<div style="font-size:13px;margin-bottom:8px">Alege șoferul:</div>'+bkListHtml(false)+
+      '<div class="modal-actions"><button class="btn" onclick="bkPick(BK.runId)">← Înapoi</button><button class="btn btn-primary" onclick="bkGoPerson()">Previzualizează</button></div>');
+  }catch(e){ bkShow(bkErr(e)+'<div class="modal-actions"><button class="btn" onclick="bkPick(BK.runId)">← Înapoi</button></div>'); }
+}
+function bkGoPerson(){
+  const s=document.querySelector('input[name="bk-sel"]:checked'); if(!s){ showToast("Alege un șofer"); return; }
+  bkPreview({person:{type:BK.cfg.persons[0].id, id:BK.list[+s.value].id}});
+}
+function bkStartModule(){
+  bkShow('<div class="form-group"><label>Modul</label><select id="bk-mod" onchange="bkModChanged()">'+BK.cfg.modules.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.label)+'</option>').join("")+'</select><div id="bk-hint" style="font-size:12px;color:var(--muted);margin-top:4px"></div></div>'+
+    '<div class="form-group"><label>Ce restaurezi din el</label><select id="bk-mode" onchange="bkModeChanged()"></select></div>'+
+    '<div id="bk-items"></div>'+
+    '<div class="modal-actions"><button class="btn" onclick="bkPick(BK.runId)">← Înapoi</button><button class="btn btn-primary" onclick="bkGoModule()">Previzualizează</button></div>');
+  bkModChanged();
+}
+function bkModChanged(){
+  const m = BK.cfg.modules.find(x=>x.id===document.getElementById("bk-mod").value);
+  document.getElementById("bk-hint").textContent = m.hint||"";
+  document.getElementById("bk-mode").innerHTML = '<option value="all">Tot modulul (toate elementele)</option><option value="items">Doar anumite elemente</option>'+m.fieldsets.map(f=>'<option value="fs:'+esc(f.id)+'">'+esc(f.label)+' (toate elementele)</option>').join("");
+  document.getElementById("bk-items").innerHTML = "";
+}
+async function bkModeChanged(){
+  const box=document.getElementById("bk-items");
+  if(document.getElementById("bk-mode").value!=="items"){ box.innerHTML=""; return; }
+  box.innerHTML='<div style="color:var(--muted);font-size:13px">Se încarcă...</div>';
+  try{
+    const r = await callFn("backupItems",{runId:BK.runId, moduleId:document.getElementById("bk-mod").value}); BK.list=r.items;
+    box.innerHTML = bkListHtml(true);
+  }catch(e){ box.innerHTML = bkErr(e); }
+}
+function bkGoModule(){
+  const mod=document.getElementById("bk-mod").value, mode=document.getElementById("bk-mode").value;
+  if(mode==="all") return bkPreview({module:mod, mode:"all"});
+  if(mode.startsWith("fs:")) return bkPreview({module:mod, mode:"fieldset", fieldset:mode.slice(3)});
+  const sel=Array.from(document.querySelectorAll('input[name="bk-sel"]:checked')).map(i=>BK.list[+i.value]);
+  if(!sel.length){ showToast("Alege cel puțin un element"); return; }
+  bkPreview({module:mod, mode:"items", ids:sel.map(x=>({c:x.c,id:x.id}))});
+}
+function bkStartAssign(){
+  const mods = BK.cfg.modules.filter(m=>m.fieldsets.some(f=>f.id==="atribuiri"));
+  bkPreview({multi:mods.map(m=>({module:m.id, mode:"fieldset", fieldset:"atribuiri"}))});
+}
+async function bkPreview(scope){
+  BK.scope = scope;
+  bkShow('<div style="color:var(--muted);font-size:13px">Se compară backup-ul cu starea de acum...</div>');
+  try{
+    const p = await callFn("backupPreview",{runId:BK.runId, scope}); BK.plan = p;
+    const s = p.summary, anyChange = s.create+s.update+s.delete>0;
+    const act = {create:"se recreează", update:"se modifică", delete:"se șterge", skip:"sărit"};
+    const rows = p.items.map(x=>'<div style="padding:8px 10px;border-bottom:1px solid var(--border);font-size:12.5px"><b>'+esc(x.label)+'</b> <span style="color:var(--muted)">· '+esc(act[x.action]||x.action)+'</span>'+
+      (x.note?'<div style="color:var(--muted)">'+esc(x.note)+'</div>':'')+
+      (x.changes||[]).map(c=>'<div style="color:var(--muted);margin-top:2px"><code>'+esc(c.field)+'</code>: acum <b style="color:var(--text)">'+esc(c.current==null?"(gol)":c.current)+'</b> → în backup <b style="color:var(--accent)">'+esc(c.backup==null?"(gol)":c.backup)+'</b></div>').join("")+'</div>').join("");
+    bkShow('<div style="font-size:13px;margin-bottom:10px">Din backup-ul <b>'+esc(bkWhen(BK.runs.find(x=>x.id===BK.runId).createdAt))+'</b>:</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px"><span class="badge-tura" style="padding:3px 9px;border-radius:6px">'+s.update+' de modificat</span><span class="badge-tura" style="padding:3px 9px;border-radius:6px">'+s.create+' de recreat</span><span style="padding:3px 9px;border-radius:6px;background:var(--bg3)">'+s.same+' identice</span>'+(s.skipped?'<span style="padding:3px 9px;border-radius:6px;background:var(--bg3)">'+s.skipped+' sărite</span>':'')+'</div>'+
+      (p.warnings.length?'<div style="padding:8px 10px;background:var(--bg3);border-radius:8px;font-size:12.5px;margin-bottom:10px">'+p.warnings.map(w=>'<div>⚠️ '+esc(w)+'</div>').join("")+'</div>':'')+
+      (rows?'<div style="max-height:34vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px">'+rows+'</div>':'<div style="font-size:13px;color:var(--muted)">Nu e nicio diferență: starea de acum e identică cu backup-ul.</div>')+
+      (p.truncated?'<div style="font-size:12px;color:var(--muted);margin-top:4px">Se afișează primele elemente; restaurarea le include pe toate.</div>':'')+
+      (scope.mode==="all"&&s.delete>0?'<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bk-del"> <span><b style="color:var(--danger)">Șterge și cele '+s.delete+' elemente create după acest backup</b> (implicit rămân neatinse)</span></label>':'')+
+      '<div style="font-size:12px;color:var(--muted);margin-top:12px">Înainte de restaurare se face automat un backup al stării de acum, ca să poți reveni.</div>'+
+      '<div class="modal-actions"><button class="btn" onclick="bkPick(BK.runId)">← Înapoi</button>'+(anyChange?'<button class="btn btn-danger" id="bk-go" onclick="bkConfirm()">Restaurează</button>':'')+'</div>');
+  }catch(e){ bkShow(bkErr(e)+'<div class="modal-actions"><button class="btn" onclick="bkPick(BK.runId)">← Înapoi</button></div>'); }
+}
+let _bkArmed=false;
+async function bkConfirm(){
+  const b=document.getElementById("bk-go");
+  if(!_bkArmed){ _bkArmed=true; b.textContent="Apasă încă o dată pentru a confirma"; setTimeout(()=>{ _bkArmed=false; const x=document.getElementById("bk-go"); if(x) x.textContent="Restaurează"; },5000); return; }
+  _bkArmed=false; b.disabled=true; b.textContent="Se restaurează...";
+  try{
+    const del = !!(document.getElementById("bk-del")&&document.getElementById("bk-del").checked);
+    const r = await callFn("backupRestore",{runId:BK.runId, scope:BK.scope, confirm:true, deleteExtra:del});
+    const x=r.result;
+    bkShow('<div style="font-size:14px;margin-bottom:8px">✅ Restaurare terminată.</div><div style="font-size:13px;color:var(--muted)">'+x.updated+' modificate · '+x.created+' recreate · '+x.deleted+' șterse'+(x.skipped?' · '+x.skipped+' sărite':'')+'.<br>Starea de dinainte e salvată automat în backup-ul „înainte de restaurare”, din lista de backup-uri.</div><div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Gata</button></div>');
+  }catch(e){ bkShow(bkErr(e)+'<div class="modal-actions"><button class="btn" onclick="bkPick(BK.runId)">← Înapoi</button></div>'); }
+}
 
 /* ======================= RENDER ======================= */
 function renderAll(){
@@ -844,7 +991,7 @@ function renderEquipList(type, list){
     if(!isNaN(bv)) return 1;
     return (a.tura||"").localeCompare(b.tura||"");
   });
-  grid.innerHTML = items.map(e=>{
+  const equipCard = e=>{
     const lbl = turaLabel(e.tura, e.note);
     return `<div class="card" onclick='openEquipDetail(${JSON.stringify(type)}, ${JSON.stringify(e.id)})'>
       <div class="top-row">
@@ -854,7 +1001,17 @@ function renderEquipList(type, list){
       ${type==='imprimante' && e.serieTip ? `<span class="badge badge-none" style="margin-left:6px">Serie ${esc(e.serieTip)}</span>` : ""}
       ${e.note && lbl.cls!=='badge-repair' ? `<div class="sub-label" style="margin-top:7px">${esc(e.note)}</div>` : ""}
     </div>`;
-  }).join("");
+  };
+  if(currentRole==="admin"){
+    // admin: echipamentele sunt separate pe grupe, Ruhstorf și Eiselfing
+    grid.innerHTML = LOCS.map(loc=>{
+      const part = items.filter(e=>locOf(e)===loc);
+      if(!part.length) return "";
+      return `<div class="group-title" style="grid-column:1/-1"><span class="dot" style="background:${locColor(loc)}"></span>${loc} <span class="n">· ${part.length}</span></div>` + part.map(equipCard).join("");
+    }).join("");
+  } else {
+    grid.innerHTML = items.map(equipCard).join("");
+  }
 }
 // expose for filter re-render
 window.scannere = scannere; window.incarcatoare = incarcatoare; window.imprimante = imprimante;
@@ -865,24 +1022,28 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;
 
 /* ======================= STATS ======================= */
 function renderStats(){
-  const total = soferi.length;
-  const withScan = soferi.filter(s=>equipForTura(scannere,s.tura)).length;
-  const withInc = soferi.filter(s=>equipForTura(incarcatoare,s.tura)).length;
-  const withImp = soferi.filter(s=>equipForTura(imprimante,s.tura)).length;
-  const complete = soferi.filter(s=>equipForTura(scannere,s.tura)&&equipForTura(incarcatoare,s.tura)&&equipForTura(imprimante,s.tura)).length;
-  const inRepair = [...scannere,...incarcatoare,...imprimante].filter(e=>e.tura && (String(e.tura).toUpperCase().includes("TRIMIS") || String(e.tura).toUpperCase().includes("DEFECT"))).length;
+  const isAdm = currentRole==="admin";
+  const statEl = document.getElementById("stat-grid");
+  const incEl = document.getElementById("incomplete-list");
+  const isRepair = e => e.tura && (String(e.tura).toUpperCase().includes("TRIMIS") || String(e.tura).toUpperCase().includes("DEFECT"));
+  const hasAll = s => equipForTura(scannere,s.tura)&&equipForTura(incarcatoare,s.tura)&&equipForTura(imprimante,s.tura);
 
-  document.getElementById("stat-grid").innerHTML = `
+  function statCards(sof, eq){
+    const total = sof.length;
+    const withScan = sof.filter(s=>equipForTura(scannere,s.tura)).length;
+    const withInc = sof.filter(s=>equipForTura(incarcatoare,s.tura)).length;
+    const withImp = sof.filter(s=>equipForTura(imprimante,s.tura)).length;
+    const complete = sof.filter(hasAll).length;
+    const inRepair = eq.filter(isRepair).length;
+    return `
     <div class="stat-card"><div class="num">${total}</div><div class="lbl">Șoferi &amp; ture</div></div>
     <div class="stat-card"><div class="num">${withScan}/${total}</div><div class="lbl">Cu scanner</div></div>
     <div class="stat-card"><div class="num">${withInc}/${total}</div><div class="lbl">Cu încărcător</div></div>
     <div class="stat-card"><div class="num">${withImp}/${total}</div><div class="lbl">Cu imprimantă</div></div>
     <div class="stat-card ${complete<total?'warn':''}"><div class="num">${complete}/${total}</div><div class="lbl">Dotare completă</div></div>
-    <div class="stat-card ${inRepair>0?'warn':''}"><div class="num">${inRepair}</div><div class="lbl">În reparație / defect</div></div>
-  `;
-  const incomplete = soferi.filter(s=>!(equipForTura(scannere,s.tura)&&equipForTura(incarcatoare,s.tura)&&equipForTura(imprimante,s.tura)));
-  document.getElementById("incomplete-n").textContent = "· " + incomplete.length;
-  document.getElementById("incomplete-list").innerHTML = incomplete.map(s=>{
+    <div class="stat-card ${inRepair>0?'warn':''}"><div class="num">${inRepair}</div><div class="lbl">În reparație / defect</div></div>`;
+  }
+  function incCard(s){
     const scan = equipForTura(scannere,s.tura), inc = equipForTura(incarcatoare,s.tura), imp = equipForTura(imprimante,s.tura);
     return `<div class="driver-card" onclick='openSoferDetail(${JSON.stringify(s.id)})'>
       <div class="name">${esc(s.nume)}</div>
@@ -893,7 +1054,30 @@ function renderStats(){
         <span class="equip-dot ${imp?'ok':'missing'}">🖨 ${imp?esc(imp.serial):'lipsă'}</span>
       </div>
     </div>`;
-  }).join("") || '<div class="empty-state" style="grid-column:1/-1"><div class="icon">✅</div><div class="msg">Toți șoferii au dotare completă</div></div>';
+  }
+  const allEq = [...scannere,...incarcatoare,...imprimante];
+  const incomplete = soferi.filter(s=>!hasAll(s));
+  document.getElementById("incomplete-n").textContent = "· " + incomplete.length;
+  const none = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">✅</div><div class="msg">Toți șoferii au dotare completă</div></div>';
+
+  if(isAdm){
+    // admin: statistici separate pe Ruhstorf și Eiselfing
+    statEl.style.display = "block";
+    statEl.innerHTML = LOCS.map(loc=>{
+      const sof = soferi.filter(s=>s.locatie===loc), eq = allEq.filter(e=>locOf(e)===loc);
+      return `<div class="group-title"><span class="dot" style="background:${locColor(loc)}"></span>${loc}</div>
+        <div class="stat-grid">${statCards(sof, eq)}</div>`;
+    }).join("");
+    incEl.innerHTML = LOCS.map(loc=>{
+      const part = incomplete.filter(s=>s.locatie===loc);
+      if(!part.length) return "";
+      return `<div class="group-title" style="grid-column:1/-1"><span class="dot" style="background:${locColor(loc)}"></span>${loc} <span class="n">· ${part.length}</span></div>` + part.map(incCard).join("");
+    }).join("") || none;
+  } else {
+    statEl.style.display = "";
+    statEl.innerHTML = statCards(soferi, allEq);
+    incEl.innerHTML = incomplete.map(incCard).join("") || none;
+  }
 }
 
 /* ======================= SOFER MODAL ======================= */
@@ -1008,6 +1192,18 @@ async function saveEquip(type, id){
   const note = document.getElementById("eq-note").value.trim();
   const serieTip = document.getElementById("eq-serieTip") ? document.getElementById("eq-serieTip").value.trim() : undefined;
   if(!serial){ showToast("Seria e obligatorie"); return; }
+  if(_savingEquip) return;            // dublu-click: o singură salvare
+  _savingEquip = true;
+  try{
+    const dup = await findDuplicateSerial(type, serial, id);
+    if(dup){
+      _savingEquip = false;
+      const where = dup.tura ? ("tură/status: " + dup.tura) : "neatribuit";
+      showToast("Seria " + serial + " există deja (" + where + (dup.locatie?", "+dup.locatie:"") + "). Nu o pot adăuga a doua oară.");
+      alert("Seria „" + serial + "” există deja la " + EQUIP_META[type].label.toLowerCase() + " (" + where + (dup.locatie?", "+dup.locatie:"") + ").\n\nNu poate fi adăugată a doua oară. Caut-o în listă și editeaz-o pe cea existentă.");
+      return;
+    }
+  }catch(e){ console.error(e); }
   const payload = {serial, tura, note, updatedAt: Date.now(), locatie: currentRole==='admin' ? (document.getElementById('eq-loc')||{}).value || 'Ruhstorf' : currentLoc};
   if(serieTip!==undefined) payload.serieTip = serieTip;
   try{
@@ -1016,6 +1212,21 @@ async function saveEquip(type, id){
     closeModal();
     showToast("Salvat");
   }catch(e){ console.error(e); showToast("Eroare la salvare"); }
+  finally{ _savingEquip = false; }
+}
+let _savingEquip = false;
+// caută aceeași serie la același tip de echipament (ignoră spații și litere mari/mici)
+async function findDuplicateSerial(type, serial, selfId){
+  const key = normSerial(serial);
+  const local = (window[type]||[]).find(e => e.id!==selfId && normSerial(e.serial)===key);
+  if(local) return local;
+  // operatorii văd doar locația lor: verificăm și direct în baza de date (serie identică)
+  try{
+    const snap = await db.collection(type).where("serial","==",serial).get();
+    const hit = snap.docs.find(d => d.id!==selfId);
+    if(hit) return {id:hit.id, ...hit.data()};
+  }catch(e){ /* regulile pot bloca: rămâne verificarea locală */ }
+  return null;
 }
 async function deleteEquip(type, id){
   if(!confirm("Ștergi acest echipament?")) return;
@@ -1073,7 +1284,7 @@ checkSavedAuth();
 </script>
 <!--MTC-UPDATE-START-->
 <script id="mtc-update">
-/*MTC_VERSION*/const MTC_APP_VERSION='20261030-112228';
+/*MTC_VERSION*/const MTC_APP_VERSION='20261030-153401';
 (function(){
   var V=MTC_APP_VERSION, busy=false, shown=false, lastIdx=0;
   window.MTC_APP_VERSION=V;
@@ -1159,6 +1370,9 @@ checkSavedAuth();
 })();
 </script>
 <!--MTC-UPDATE-END-->
+
+
+
 
 </body>
 </html>
